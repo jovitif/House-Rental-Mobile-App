@@ -1,7 +1,6 @@
 import 'package:houserental/models/usuario.dart';
 
 import 'contato.dart';
-import 'imovel.dart';
 
 class Proprietario extends Usuario {
   // final List<Imovel> imoveis;
