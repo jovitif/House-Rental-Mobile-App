@@ -42,6 +42,10 @@ void main() {
       expect(imovel.preco, greaterThan(500));
     });
 
+    test("Valor imovel é menor do que 500", () {
+      expect(imovel.preco, lessThan(500));
+    });
+
     group("CRUD", () {
       test("Criar Imóvel", () {
         expect(imovelServices.create(imovel), true);
@@ -86,6 +90,12 @@ void main() {
       test("Remover Imóvel", () {
         imovelServices.create(imovel);
         imovelServices.delete(1);
+        expect(imovelServices.imoveis.length, 0);
+      });
+
+      test("Remover Imóvel 2", () {
+        imovelServices.create(imovel);
+        imovelServices.delete(3);
         expect(imovelServices.imoveis.length, 0);
       });
     });

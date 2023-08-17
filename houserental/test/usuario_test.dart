@@ -23,6 +23,11 @@ void main() {
     expect(retrievedUser.nome, "João Sales");
   });
 
+  test("Ler Usuário 2", () {
+    final retrievedUser = userServices.read(3);
+    expect(retrievedUser, isNotNull);
+  });
+
   test("Atualizar Usuário", () {
     final newUser = Usuario(
       id: 1,
@@ -37,17 +42,17 @@ void main() {
     expect(updatedUser.contato.email, "joaovitor@example.com");
   });
 
-  test("Excluir Usuário", () {
+  test("Ler Usuário Inexistente", () {
+    expect(() => userServices.read(1), throwsException);
+    print(throwsException);
+  });
+
+  test("Excluir Usuário 1", () {
     userServices.delete(1);
     expect(userServices.usuarios.length, 0);
   });
 
-  test("Excluir Usuário", () {
-    userServices.delete(3);
-    expect(userServices.usuarios.length, 0);
-  });
-
-  test("Ler Usuário Inexistente", () {
+  test("Ler Usuário Inexistente 2", () {
     expect(() => userServices.read(1), throwsException);
     print(throwsException);
   });
