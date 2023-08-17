@@ -9,7 +9,6 @@ void main() {
       nome: "João Sales",
       contato: Contato(
           email: "joaosales911@gmail.com", telefone: "+55(84)98891-9268"));
-
   final userServices = UsuarioServices();
 
   test("Adicionar Usuário", () {
@@ -23,6 +22,7 @@ void main() {
     expect(retrievedUser.nome, "João Sales");
   });
 
+  // Erro: o usuario 3 não existe no sistema
   test("Ler Usuário 2", () {
     final retrievedUser = userServices.read(3);
     expect(retrievedUser, isNotNull);
@@ -42,6 +42,7 @@ void main() {
     expect(updatedUser.contato.email, "joaovitor@example.com");
   });
 
+  // Erro: o usuario 1 existe no sistema
   test("Ler Usuário Inexistente", () {
     expect(() => userServices.read(1), throwsException);
     print(throwsException);
@@ -52,7 +53,7 @@ void main() {
     expect(userServices.usuarios.length, 0);
   });
 
-  test("Ler Usuário Inexistente 2", () {
+  test("Ler Usuário Inexistente (2)", () {
     expect(() => userServices.read(1), throwsException);
     print(throwsException);
   });

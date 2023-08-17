@@ -23,8 +23,6 @@ void main() {
     tipo: EnumTipo.APARTAMENTO,
   );
 
-  final imovelServices = ImovelServices();
-
   group('Imóvel', () {
     test('Verificar status', () {
       expect(imovel.status, EnumStatus.ALUGAR);
@@ -38,15 +36,16 @@ void main() {
       expect(imovel.titulo, 'Apartamento A');
     });
 
-    test("Valor imovel maior do que 500", () {
-      expect(imovel.preco, greaterThan(500));
-    });
-
     test("Valor imovel é menor do que 500", () {
       expect(imovel.preco, lessThan(500));
     });
 
+    test("Valor imovel maior do que 500", () {
+      expect(imovel.preco, greaterThan(500));
+    });
+
     group("CRUD", () {
+      final imovelServices = ImovelServices();
       test("Criar Imóvel", () {
         expect(imovelServices.create(imovel), true);
       });
@@ -55,6 +54,12 @@ void main() {
         final retrievedImovel = imovelServices.read(1);
         expect(retrievedImovel, isNotNull);
         expect(retrievedImovel.id, 1);
+      });
+
+      test("Ler Imóvel (2)", () {
+        final retrievedImovel = imovelServices.read(2);
+        expect(retrievedImovel, isNotNull);
+        expect(retrievedImovel.id, 2);
       });
 
       test("Atualizar Imóvel", () {
@@ -90,12 +95,6 @@ void main() {
       test("Remover Imóvel", () {
         imovelServices.create(imovel);
         imovelServices.delete(1);
-        expect(imovelServices.imoveis.length, 0);
-      });
-
-      test("Remover Imóvel 2", () {
-        imovelServices.create(imovel);
-        imovelServices.delete(3);
         expect(imovelServices.imoveis.length, 0);
       });
     });
