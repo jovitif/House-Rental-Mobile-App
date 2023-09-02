@@ -38,7 +38,7 @@ class LoginPage extends StatelessWidget {
                 text: 'Entrar', // Texto do botão
                 onPressed: () {
                   // Lógica de botão
-                  Navigator.pushNamed(context, '/home');
+                  Navigator.pushNamed(context, '/imoveis');
                 },
               ),
               SizedBox(height: 40.0), // Aumentando o espaçamento
