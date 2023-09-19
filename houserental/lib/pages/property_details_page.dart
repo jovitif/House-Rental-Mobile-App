@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:houserental/pages/edit_property_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PropertyDetailsPage extends StatefulWidget {
   final String propertyId;
@@ -14,6 +15,7 @@ class PropertyDetailsPage extends StatefulWidget {
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   Map<String, dynamic>? propertyData;
   bool isLoading = true;
+  User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
@@ -76,11 +78,22 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }
 
   void navigateToEditProperty(String propertyId) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditPropertyPage(propertyId: propertyId),
-      ),
-    );
+    if (currentUser != null &&
+        propertyData != null &&
+        currentUser!.uid == propertyData!['ownerId']) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => EditPropertyPage(propertyId: propertyId),
+        ),
+      );
+    } else {
+      // O usuário atual não é o proprietário, então você pode exibir uma mensagem de erro ou tomar outra ação apropriada.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Você não tem permissão para editar esta propriedade.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -156,19 +169,25 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                     SizedBox(height: 20),
                     Row(
                       children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            navigateToEditProperty(widget.propertyId);
-                          },
-                          child: Text('Editar'),
-                        ),
+                        if (currentUser != null &&
+                            propertyData != null &&
+                            currentUser!.uid == propertyData!['ownerId'])
+                          ElevatedButton(
+                            onPressed: () {
+                              navigateToEditProperty(widget.propertyId);
+                            },
+                            child: Text('Editar'),
+                          ),
                         SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {
-                            deleteProperty(widget.propertyId);
-                          },
-                          child: Text('Remover'),
-                        ),
+                        if (currentUser != null &&
+                            propertyData != null &&
+                            currentUser!.uid == propertyData!['ownerId'])
+                          ElevatedButton(
+                            onPressed: () {
+                              deleteProperty(widget.propertyId);
+                            },
+                            child: Text('Remover'),
+                          ),
                       ],
                     ),
                   ],
