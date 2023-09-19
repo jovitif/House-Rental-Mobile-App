@@ -62,15 +62,16 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(height: 50.0),
               ClassicButton(
                 text: 'Entrar',
-                onPressed: () {
+                onPressed: () async {
                   // Obtenha os valores do campo de texto
                   String email = emailController.text;
                   String password = passwordController.text;
 
                   // Chame a função de login
-                  loginUser(email, password);
+                  await loginUser(email, password);
 
-                  // Lógica de botão
+                  // Saia da tela de login e vá para a tela do usuário
+                  Navigator.pop(context); // Isso irá fechar a tela de login
                   Navigator.pushNamed(context, '/tela_usuario');
                 },
               ),

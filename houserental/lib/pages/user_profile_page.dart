@@ -9,7 +9,7 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   User? user;
-  late List<QueryDocumentSnapshot> userProperties;
+  late List<QueryDocumentSnapshot> userProperties = [];
 
   Future<void> getUser() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
@@ -33,7 +33,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.of(context).pop();
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   void navigateToAddProperty() {
@@ -77,6 +77,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   navigateToAddProperty();
                 },
                 child: Text('Adicionar Imóvel'),
+              ),
+              SizedBox(height: 20.0),
+              ElevatedButton(
+                onPressed: () {
+                  logout(); // Chame a função de logout ao pressionar o botão.
+                },
+                child: Text('Logout'),
               ),
               SizedBox(height: 20.0),
               Text(

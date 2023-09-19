@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddPropertyPage extends StatefulWidget {
   @override
@@ -19,31 +18,25 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   final TextEditingController typeController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   List<File?> propertyImages = [];
-  GoogleMapController? mapController;
-  LatLng? selectedLocation;
-
-  void onMapCreated(GoogleMapController controller) {
-    setState(() {
-      mapController = controller;
-    });
-  }
 
   void pickImages() async {
-    // Implemente a lógica para selecionar e armazenar as imagens do imóvel.
+    final picker = ImagePicker();
+    final pickedImages = await picker.pickMultiImage();
+
+    if (pickedImages != null && pickedImages.isNotEmpty) {
+      // Você pode salvar as imagens no Firebase Storage aqui e obter os URLs das imagens.
+      // Depois, associe esses URLs ao documento do imóvel no Firestore.
+    } else {
+      // O usuário não selecionou nenhuma imagem.
+    }
   }
 
-  void updateLocation(LatLng location) async {
-    final addresses =
-        await placemarkFromCoordinates(location.latitude, location.longitude);
-    if (addresses.isNotEmpty) {
-      final address = addresses[0];
-      final formattedAddress =
-          '${address.street}, ${address.locality}, ${address.administrativeArea}, ${address.country}';
-      setState(() {
-        locationController.text = formattedAddress;
-        selectedLocation = location;
-      });
-    }
+  void showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
   }
 
   void saveProperty() async {
@@ -54,9 +47,8 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         specificationController.text.isEmpty ||
         statusController.text.isEmpty ||
         typeController.text.isEmpty ||
-        locationController.text.isEmpty ||
-        selectedLocation == null) {
-      // Exiba uma mensagem de erro ou faça algo para lidar com campos em branco.
+        locationController.text.isEmpty) {
+      showSnackBar('Por favor, preencha todos os campos.');
       return;
     }
 
@@ -81,12 +73,14 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
             .collection('properties')
             .add(propertyData);
 
-        // Imóvel salvo com sucesso
+        showSnackBar('Imóvel salvo com sucesso.');
         // Você pode exibir uma mensagem de sucesso ou navegar para outra página aqui.
       } else {
+        showSnackBar('Você não está logado.');
         // O usuário não está logado; faça algo para lidar com isso.
       }
     } catch (e) {
+      showSnackBar('Erro ao salvar imóvel: $e');
       // Lidar com erros, como falha ao salvar no Firestore.
       print('Erro ao salvar imóvel: $e');
     }
@@ -132,26 +126,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
               controller: locationController,
               decoration: InputDecoration(labelText: 'Localização'),
             ),
-            if (selectedLocation != null)
-              Container(
-                height: 200,
-                child: GoogleMap(
-                  onMapCreated: onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: selectedLocation!,
-                    zoom: 15.0,
-                  ),
-                  markers: Set<Marker>.from([
-                    Marker(
-                      markerId: MarkerId('selected_location'),
-                      position: selectedLocation!,
-                    ),
-                  ]),
-                  onTap: (location) {
-                    updateLocation(location);
-                  },
-                ),
-              ),
             ElevatedButton(
               onPressed: () {
                 pickImages();

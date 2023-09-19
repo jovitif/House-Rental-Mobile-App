@@ -41,9 +41,6 @@ dependencies:
   image_picker: ^0.8.4
   cloud_firestore: ^4.9.1
   firebase_storage: ^11.2.6
-  google_maps_flutter: ^2.5.0
-  geolocator: ^10.0.1
-  geocoding: ^2.1.0
   #firebase_core_web: ^2.7.0
  # google_maps_flutter: ^2.4.0
 
