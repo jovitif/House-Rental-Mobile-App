@@ -121,13 +121,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               ElevatedButton(
                 onPressed: () {
-                  navigateToAddProperty();
-                },
-                child: Text('Adicionar Imóvel'),
-              ),
-              SizedBox(height: 20.0),
-              ElevatedButton(
-                onPressed: () {
                   navigateToMyProperties();
                 },
                 child: Text('Meus Imóveis'),
@@ -145,6 +138,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   navigateToAddFriend();
                 },
                 child: Text('Adicionar Amigo'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/all_properties');
+                },
+                child: Text('Ver Todos os Imóveis'),
               ),
             ],
           ),

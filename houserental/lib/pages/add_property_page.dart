@@ -1,9 +1,17 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+enum Status { comprar, vender, negociar }
+
+enum Tipo { casa, apartamento, condominio }
 
 class AddPropertyPage extends StatefulWidget {
   @override
@@ -15,10 +23,28 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController specificationController = TextEditingController();
-  final TextEditingController statusController = TextEditingController();
-  final TextEditingController typeController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
+  Status selectedStatus = Status.comprar; // Valor padrão
+  Tipo selectedType = Tipo.casa; // Valor padrão
+  final TextEditingController cepController =
+      TextEditingController(); // Campo para o CEP
+  double? latitude;
+  double? longitude;
+  String? street;
+  String? city;
+  String? country;
   List<File?> propertyImages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Adicione um ouvinte para o campo de localização
+    cepController.addListener(() {
+      // Verifique se o campo CEP não está vazio
+      if (cepController.text.isNotEmpty) {
+        searchLocation(cepController.text);
+      }
+    });
+  }
 
   void pickImages() async {
     final picker = ImagePicker();
@@ -42,15 +68,54 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     );
   }
 
+  Future<void> searchLocation(String cep) async {
+    // Use a API de geocodificação (por exemplo, OpenCage) para obter informações de localização a partir do CEP.
+    final apiKey =
+        'e6ba151fbb4b4aacb1c05cd1cd17078c'; // Substitua pela sua chave
+    final query = Uri.encodeComponent(cep);
+
+    final response = await http.get(
+      Uri.parse(
+        'https://api.opencagedata.com/geocode/v1/json?q=$query&key=$apiKey',
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final results = data['results'] as List<dynamic>;
+
+      if (results.isNotEmpty) {
+        final firstResult = results[0];
+        final geometry = firstResult['geometry'];
+        final components = firstResult['components'];
+        final formattedStreet = components['road'];
+        final formattedCity = components['city'];
+        final formattedCountry = components['country'];
+
+        setState(() {
+          latitude = geometry['lat'];
+          longitude = geometry['lng'];
+          street = formattedStreet;
+          city = formattedCity;
+          country = formattedCountry;
+        });
+      } else {
+        // Não foram encontrados resultados.
+        // Trate isso de acordo com a sua lógica.
+      }
+    } else {
+      // Erro ao chamar a API OpenCage.
+      // Trate isso de acordo com a sua lógica.
+    }
+  }
+
   Future<void> saveProperty() async {
     // Verifique se todos os campos necessários estão preenchidos
     if (titleController.text.isEmpty ||
         priceController.text.isEmpty ||
         descriptionController.text.isEmpty ||
         specificationController.text.isEmpty ||
-        statusController.text.isEmpty ||
-        typeController.text.isEmpty ||
-        locationController.text.isEmpty) {
+        cepController.text.isEmpty) {
       showSnackBar('Por favor, preencha todos os campos.');
       return;
     }
@@ -65,9 +130,12 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
           'price': priceController.text,
           'description': descriptionController.text,
           'specification': specificationController.text,
-          'status': statusController.text,
-          'type': typeController.text,
-          'location': locationController.text,
+          'status':
+              statusToString(selectedStatus), // Converter enum para string
+          'type': typeToString(selectedType), // Converter enum para string
+          'location': cepController.text,
+          'latitude': latitude,
+          'longitude': longitude,
           'ownerId': user.uid, // Associe o imóvel ao ID do usuário
         };
 
@@ -105,6 +173,28 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     }
   }
 
+  String statusToString(Status status) {
+    switch (status) {
+      case Status.comprar:
+        return 'Comprar';
+      case Status.vender:
+        return 'Vender';
+      case Status.negociar:
+        return 'Negociar';
+    }
+  }
+
+  String typeToString(Tipo type) {
+    switch (type) {
+      case Tipo.casa:
+        return 'Casa';
+      case Tipo.apartamento:
+        return 'Apartamento';
+      case Tipo.condominio:
+        return 'Condomínio';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,20 +221,68 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
               controller: specificationController,
               decoration: InputDecoration(labelText: 'Especificação'),
             ),
-            TextField(
-              controller: statusController,
-              decoration: InputDecoration(
-                  labelText: 'Status (Comprar, Vender, Negociar)'),
+            DropdownButtonFormField<Status>(
+              value: selectedStatus,
+              onChanged: (value) {
+                setState(() {
+                  selectedStatus = value!;
+                });
+              },
+              items: Status.values
+                  .map((status) => DropdownMenuItem(
+                        value: status,
+                        child: Text(statusToString(status)),
+                      ))
+                  .toList(),
+              decoration: InputDecoration(labelText: 'Status'),
+            ),
+            DropdownButtonFormField<Tipo>(
+              value: selectedType,
+              onChanged: (value) {
+                setState(() {
+                  selectedType = value!;
+                });
+              },
+              items: Tipo.values
+                  .map((type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(typeToString(type)),
+                      ))
+                  .toList(),
+              decoration: InputDecoration(labelText: 'Tipo'),
             ),
             TextField(
-              controller: typeController,
-              decoration: InputDecoration(
-                  labelText: 'Tipo (Casa, Apartamento, Condomínio)'),
+              controller: cepController,
+              decoration: InputDecoration(labelText: 'CEP'),
             ),
-            TextField(
-              controller: locationController,
-              decoration: InputDecoration(labelText: 'Localização'),
-            ),
+            if (latitude != null && longitude != null)
+              Container(
+                height: 300.0,
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(latitude!, longitude!),
+                    zoom: 15.0, // Ajuste o nível de zoom conforme necessário
+                  ),
+                  markers: {
+                    Marker(
+                      markerId: MarkerId('property_location'),
+                      position: LatLng(latitude!, longitude!),
+                      infoWindow: InfoWindow(
+                        title: cepController.text,
+                      ),
+                    ),
+                  },
+                ),
+              ),
+            if (street != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Rua: $street'),
+                  Text('Cidade: $city'),
+                  Text('País: $country'),
+                ],
+              ),
             ElevatedButton(
               onPressed: () {
                 pickImages();

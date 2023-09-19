@@ -3,28 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:houserental/pages/property_details_page.dart';
 
-import 'add_property_page.dart';
-
-class MyPropertiesPage extends StatefulWidget {
+class PropertiesPage extends StatefulWidget {
   @override
-  _MyPropertiesPageState createState() => _MyPropertiesPageState();
+  _PropertiesPageState createState() => _PropertiesPageState();
 }
 
-class _MyPropertiesPageState extends State<MyPropertiesPage> {
+class _PropertiesPageState extends State<PropertiesPage> {
   late List<QueryDocumentSnapshot> userProperties = [];
 
-  Future<void> loadUserProperties() async {
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      final userId = currentUser.uid;
-      final userPropertiesSnapshot = await FirebaseFirestore.instance
-          .collection('properties')
-          .where('ownerId', isEqualTo: userId)
-          .get();
-      setState(() {
-        userProperties = userPropertiesSnapshot.docs;
-      });
-    }
+  Future<void> loadAllProperties() async {
+    final allPropertiesSnapshot =
+        await FirebaseFirestore.instance.collection('properties').get();
+    setState(() {
+      userProperties = allPropertiesSnapshot.docs;
+    });
   }
 
   Future<void> deleteProperty(String propertyId) async {
@@ -34,7 +26,7 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
           .doc(propertyId)
           .delete();
       // Recarregue a lista de imóveis após excluir um imóvel.
-      await loadUserProperties();
+      await loadAllProperties();
     } catch (e) {
       print('Erro ao excluir imóvel: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,42 +47,25 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
     );
   }
 
-  void navigateToAddProperty() {
-    // Navegue para a página de adicionar imóveis quando o botão "Adicionar Imóvel" for pressionado.
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddPropertyPage(),
-      ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
-    loadUserProperties();
+    loadAllProperties();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Meus Imóveis'),
+        title: Text('Todos os Imóveis'),
       ),
       body: Center(
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: Column(
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  navigateToAddProperty();
-                },
-                child: Text('Adicionar Imóvel'),
-              ),
-              SizedBox(height: 20.0),
               Text(
-                'Imóveis do Usuário:',
+                'Lista de Imóveis:',
                 style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
               if (userProperties.isNotEmpty)
@@ -101,8 +76,8 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
                       final property =
                           userProperties[index].data() as Map<String, dynamic>;
                       final propertyId = userProperties[index].id;
-                      final imageUrl = property[
-                          'imageUrl']; // Adicione o campo de URL da imagem
+                      final imageUrl = property['imageUrl'];
+                      final ownerId = property['ownerId'];
 
                       return InkWell(
                         onTap: () {
@@ -110,12 +85,35 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
                         },
                         child: ListTile(
                           title: Text(property['title']),
-                          subtitle: Text('Preço: ${property['price']}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Preço: ${property['price']}'),
+                              FutureBuilder(
+                                future: FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(ownerId)
+                                    .get(),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    final userData = snapshot.data?.data()
+                                        as Map<String, dynamic>;
+                                    final username = userData['username'] ??
+                                        'Nome não informado';
+                                    return Text(
+                                        'Nome do Proprietário: $username');
+                                  } else {
+                                    return CircularProgressIndicator();
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
                           leading: imageUrl != null
-                              ? Image.network(imageUrl) // Exiba a imagem
-                              : Icon(Icons
-                                  .image), // Ícone padrão se a imagem não estiver disponível
-                          // Adicione mais informações aqui, conforme necessário.
+                              ? Image.network(imageUrl)
+                              : Icon(Icons.image),
                         ),
                       );
                     },
