@@ -9,26 +9,11 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   User? user;
-  late List<QueryDocumentSnapshot> userProperties = [];
 
-  Future<void> getUser() async {
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      setState(() {
-        user = currentUser;
-      });
-      await loadUserProperties(currentUser.uid);
-    }
-  }
-
-  Future<void> loadUserProperties(String userId) async {
-    final userPropertiesSnapshot = await FirebaseFirestore.instance
-        .collection('properties')
-        .where('ownerId', isEqualTo: userId)
-        .get();
-    setState(() {
-      userProperties = userPropertiesSnapshot.docs;
-    });
+  @override
+  void initState() {
+    super.initState();
+    user = FirebaseAuth.instance.currentUser;
   }
 
   Future<void> logout() async {
@@ -37,14 +22,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void navigateToAddProperty() {
-    // Navegue para a página de cadastro de imóveis quando o botão for pressionado
     Navigator.pushNamed(context, '/add_property');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getUser();
+  void navigateToMyProperties() {
+    Navigator.pushNamed(context, '/my_properties');
+  }
+
+  void navigateToAddFriend() {
+    Navigator.pushNamed(context, '/add_friend');
   }
 
   @override
@@ -55,19 +41,80 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (user != null)
                 Column(
                   children: [
+                    FutureBuilder(
+                      future: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user!.uid)
+                          .get(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          final userData =
+                              snapshot.data?.data() as Map<String, dynamic>;
+                          final profileImageUrl = userData['profileImageUrl'];
+
+                          return CircleAvatar(
+                            radius: 80,
+                            backgroundColor: Colors.grey,
+                            child: ClipOval(
+                              child: profileImageUrl != null
+                                  ? Image.network(
+                                      profileImageUrl,
+                                      width:
+                                          160, // Largura e altura da imagem dentro do círculo
+                                      height: 160,
+                                      fit: BoxFit
+                                          .cover, // Ajuste a imagem para cobrir todo o círculo
+                                    )
+                                  : Image.asset(
+                                      'assets/default_avatar.png',
+                                      width:
+                                          160, // Largura e altura da imagem dentro do círculo
+                                      height: 160,
+                                      fit: BoxFit
+                                          .cover, // Ajuste a imagem para cobrir todo o círculo
+                                    ),
+                            ),
+                          );
+                        } else {
+                          return CircularProgressIndicator(); // Mostra um indicador de carregamento enquanto a imagem está sendo carregada.
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20.0),
                     Text(
-                      'Nome de Usuário: ${user!.displayName ?? "Não informado"}',
+                      'Nome de Usuário:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      user!.displayName ?? 'Não informado',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
                     ),
                     SizedBox(height: 10.0),
                     Text(
-                      'Email: ${user!.email ?? "Não informado"}',
+                      'Email:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      user!.email ?? 'Não informado',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
                     ),
                     SizedBox(height: 20.0),
                   ],
@@ -81,31 +128,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
-                  logout(); // Chame a função de logout ao pressionar o botão.
+                  navigateToMyProperties();
+                },
+                child: Text('Meus Imóveis'),
+              ),
+              SizedBox(height: 20.0),
+              ElevatedButton(
+                onPressed: () {
+                  logout();
                 },
                 child: Text('Logout'),
               ),
               SizedBox(height: 20.0),
-              Text(
-                'Meus Imóveis:',
-                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              ElevatedButton(
+                onPressed: () {
+                  navigateToAddFriend();
+                },
+                child: Text('Adicionar Amigo'),
               ),
-              if (userProperties.isNotEmpty)
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: userProperties.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final property =
-                          userProperties[index].data() as Map<String, dynamic>;
-                      return ListTile(
-                        title: Text(property['title']),
-                        subtitle: Text('Preço: ${property['price']}'),
-                        // Adicione mais informações aqui, conforme necessário.
-                      );
-                    },
-                  ),
-                ),
-              if (userProperties.isEmpty) Text('Nenhum imóvel encontrado.'),
             ],
           ),
         ),

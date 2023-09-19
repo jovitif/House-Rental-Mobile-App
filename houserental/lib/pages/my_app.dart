@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:houserental/pages/adicionar_imovel_screen.dart';
+import 'package:houserental/pages/add_friend_page.dart';
 import 'package:houserental/pages/login_form.dart';
+import 'package:houserental/pages/my_proprietes_page.dart';
 import 'package:houserental/pages/register_form.dart';
 import '../models/usuario.dart';
 import 'add_property_page.dart';
-import 'imoveis_screen.dart';
 import 'user_profile_page.dart';
 
 class MyApp extends StatelessWidget {
@@ -18,10 +18,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/register': (context) => RegisterForm(),
         '/login': (context) => LoginPage(),
-        '/imoveis': (context) => ImoveisScreen(),
-        '/adicionar_imovel': (context) => AdicionarImovelScreen(),
         '/tela_usuario': (context) => UserProfilePage(),
         '/add_property': (context) => AddPropertyPage(),
+        '/my_properties': (context) => MyPropertiesPage(),
+        '/add_friend': (context) => AddFriendPage(),
       },
       home: LoginPage(),
     );

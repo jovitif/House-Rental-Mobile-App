@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AddPropertyPage extends StatefulWidget {
   @override
@@ -24,8 +25,10 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     final pickedImages = await picker.pickMultiImage();
 
     if (pickedImages != null && pickedImages.isNotEmpty) {
-      // Você pode salvar as imagens no Firebase Storage aqui e obter os URLs das imagens.
-      // Depois, associe esses URLs ao documento do imóvel no Firestore.
+      setState(() {
+        propertyImages =
+            pickedImages.map((pickedFile) => File(pickedFile.path)).toList();
+      });
     } else {
       // O usuário não selecionou nenhuma imagem.
     }
@@ -39,7 +42,7 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     );
   }
 
-  void saveProperty() async {
+  Future<void> saveProperty() async {
     // Verifique se todos os campos necessários estão preenchidos
     if (titleController.text.isEmpty ||
         priceController.text.isEmpty ||
@@ -69,9 +72,25 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         };
 
         // Substitua 'properties' pelo nome da sua coleção no Firestore
-        await FirebaseFirestore.instance
+        final propertyRef = await FirebaseFirestore.instance
             .collection('properties')
             .add(propertyData);
+
+        // Faça upload das imagens para o Firebase Storage
+        for (int i = 0; i < propertyImages.length; i++) {
+          final imageFile = propertyImages[i];
+          if (imageFile != null) {
+            final imageRef = FirebaseStorage.instance
+                .ref('property_images/${propertyRef.id}/image$i.jpg');
+            await imageRef.putFile(imageFile);
+            final imageUrl = await imageRef.getDownloadURL();
+
+            // Associe o URL da imagem ao documento do imóvel
+            await propertyRef.update({
+              'images': FieldValue.arrayUnion([imageUrl])
+            });
+          }
+        }
 
         showSnackBar('Imóvel salvo com sucesso.');
         // Você pode exibir uma mensagem de sucesso ou navegar para outra página aqui.

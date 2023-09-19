@@ -70,6 +70,7 @@ class _RegisterFormState extends State<RegisterForm> {
         await ref.putFile(profileImage!);
         final imageUrl = await ref.getDownloadURL();
 
+        // Atualize o documento do usuário no Firestore com a URL da imagem do perfil.
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'profileImageUrl': imageUrl,
         });
