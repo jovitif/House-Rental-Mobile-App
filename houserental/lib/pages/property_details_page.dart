@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:houserental/pages/edit_property_page.dart';
 
 class PropertyDetailsPage extends StatefulWidget {
   final String propertyId;
@@ -75,14 +75,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
-  void editProperty(String propertyId) {
-    // Implemente a lógica de edição aqui, por exemplo, navegue para uma página de edição.
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => EditPropertyPage(propertyId: propertyId),
-    //   ),
-    // );
+  void navigateToEditProperty(String propertyId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditPropertyPage(propertyId: propertyId),
+      ),
+    );
   }
 
   @override
@@ -160,7 +158,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            editProperty(widget.propertyId);
+                            navigateToEditProperty(widget.propertyId);
                           },
                           child: Text('Editar'),
                         ),

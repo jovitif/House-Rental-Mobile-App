@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:houserental/pages/add_friend_page.dart';
+import 'package:houserental/pages/edit_property_page.dart';
 import 'package:houserental/pages/login_form.dart';
 import 'package:houserental/pages/my_proprietes_page.dart';
 import 'package:houserental/pages/proprietes_page.dart';
@@ -24,6 +25,8 @@ class MyApp extends StatelessWidget {
         '/my_properties': (context) => MyPropertiesPage(),
         '/add_friend': (context) => AddFriendPage(),
         '/all_properties': (context) => PropertiesPage(),
+        '/edit_property': (context) => EditPropertyPage(
+            propertyId: ''), // Substitua com a lógica para obter o propertyId
       },
       home: LoginPage(),
     );
