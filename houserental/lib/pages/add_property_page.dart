@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -25,25 +24,13 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   final TextEditingController specificationController = TextEditingController();
   Status selectedStatus = Status.comprar; // Valor padrão
   Tipo selectedType = Tipo.casa; // Valor padrão
-  final TextEditingController cepController =
-      TextEditingController(); // Campo para o CEP
-  double? latitude;
-  double? longitude;
-  String? street;
-  String? city;
-  String? country;
   List<File?> propertyImages = [];
+  String?
+      locationFromCoordinates; // Localização a partir das coordenadas (latitude e longitude)
 
   @override
   void initState() {
     super.initState();
-    // Adicione um ouvinte para o campo de localização
-    cepController.addListener(() {
-      // Verifique se o campo CEP não está vazio
-      if (cepController.text.isNotEmpty) {
-        searchLocation(cepController.text);
-      }
-    });
   }
 
   void pickImages() async {
@@ -68,54 +55,12 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     );
   }
 
-  Future<void> searchLocation(String cep) async {
-    // Use a API de geocodificação (por exemplo, OpenCage) para obter informações de localização a partir do CEP.
-    final apiKey =
-        'e6ba151fbb4b4aacb1c05cd1cd17078c'; // Substitua pela sua chave
-    final query = Uri.encodeComponent(cep);
-
-    final response = await http.get(
-      Uri.parse(
-        'https://api.opencagedata.com/geocode/v1/json?q=$query&key=$apiKey',
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final results = data['results'] as List<dynamic>;
-
-      if (results.isNotEmpty) {
-        final firstResult = results[0];
-        final geometry = firstResult['geometry'];
-        final components = firstResult['components'];
-        final formattedStreet = components['road'];
-        final formattedCity = components['city'];
-        final formattedCountry = components['country'];
-
-        setState(() {
-          latitude = geometry['lat'];
-          longitude = geometry['lng'];
-          street = formattedStreet;
-          city = formattedCity;
-          country = formattedCountry;
-        });
-      } else {
-        // Não foram encontrados resultados.
-        // Trate isso de acordo com a sua lógica.
-      }
-    } else {
-      // Erro ao chamar a API OpenCage.
-      // Trate isso de acordo com a sua lógica.
-    }
-  }
-
   Future<void> saveProperty() async {
     // Verifique se todos os campos necessários estão preenchidos
     if (titleController.text.isEmpty ||
         priceController.text.isEmpty ||
         descriptionController.text.isEmpty ||
-        specificationController.text.isEmpty ||
-        cepController.text.isEmpty) {
+        specificationController.text.isEmpty) {
       showSnackBar('Por favor, preencha todos os campos.');
       return;
     }
@@ -133,9 +78,7 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
           'status':
               statusToString(selectedStatus), // Converter enum para string
           'type': typeToString(selectedType), // Converter enum para string
-          'location': cepController.text,
-          'latitude': latitude,
-          'longitude': longitude,
+          'location': locationFromCoordinates ?? '',
           'ownerId': user.uid, // Associe o imóvel ao ID do usuário
         };
 
@@ -251,38 +194,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                   .toList(),
               decoration: InputDecoration(labelText: 'Tipo'),
             ),
-            TextField(
-              controller: cepController,
-              decoration: InputDecoration(labelText: 'CEP'),
-            ),
-            if (latitude != null && longitude != null)
-              Container(
-                height: 300.0,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(latitude!, longitude!),
-                    zoom: 15.0, // Ajuste o nível de zoom conforme necessário
-                  ),
-                  markers: {
-                    Marker(
-                      markerId: MarkerId('property_location'),
-                      position: LatLng(latitude!, longitude!),
-                      infoWindow: InfoWindow(
-                        title: cepController.text,
-                      ),
-                    ),
-                  },
-                ),
-              ),
-            if (street != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Rua: $street'),
-                  Text('Cidade: $city'),
-                  Text('País: $country'),
-                ],
-              ),
             ElevatedButton(
               onPressed: () {
                 pickImages();
