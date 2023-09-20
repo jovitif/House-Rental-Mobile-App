@@ -49,6 +49,13 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    dependencies {
+        // Restante das suas dependências...
+
+        implementation 'com.google.android.gms:play-services-maps:17.0.1'
+        implementation 'com.google.android.gms:play-services-location:18.0.0'
+    }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }

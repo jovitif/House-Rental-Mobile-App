@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -10,28 +12,44 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   User? user;
+  GoogleMapController? mapController;
+  LatLng? currentPosition;
 
   @override
   void initState() {
     super.initState();
+    _getCurrentLocation();
     user = FirebaseAuth.instance.currentUser;
+  }
+
+  Future<void> _getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    setState(() {
+      currentPosition = LatLng(position.latitude, position.longitude);
+    });
+
+    // Mover a câmera do mapa para a nova posição atual
+    _moveCameraToCurrentPosition();
+  }
+
+  void _moveCameraToCurrentPosition() {
+    if (mapController != null && currentPosition != null) {
+      mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: currentPosition!,
+            zoom: 15.0,
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
     Navigator.pushReplacementNamed(context, '/login');
-  }
-
-  void navigateToAddProperty() {
-    Navigator.pushNamed(context, '/add_property');
-  }
-
-  void navigateToMyProperties() {
-    Navigator.pushNamed(context, '/my_properties');
-  }
-
-  void navigateToAddFriend() {
-    Navigator.pushNamed(context, '/add_friend');
   }
 
   @override
@@ -50,7 +68,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
             SizedBox(height: 20.0),
             Row(
               children: [
-                // Coluna à esquerda com a foto de perfil, nome de usuário e email
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -161,6 +178,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               ],
             ),
+            const SizedBox(height: 50.0),
+            Container(
+              height: 350.0,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: currentPosition ?? LatLng(0, 0),
+                  zoom: 15.0,
+                ),
+                onMapCreated: (GoogleMapController controller) {
+                  setState(() {
+                    mapController = controller;
+                  });
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -177,5 +209,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       ),
     );
+  }
+
+  void navigateToAddProperty() {
+    Navigator.pushNamed(context, '/add_property');
+  }
+
+  void navigateToMyProperties() {
+    Navigator.pushNamed(context, '/my_properties');
+  }
+
+  void navigateToAddFriend() {
+    Navigator.pushNamed(context, '/add_friend');
   }
 }
