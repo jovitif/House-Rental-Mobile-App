@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:houserental/pages/property_details_page.dart';
 
 import 'add_property_page.dart';
@@ -74,19 +75,21 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Meus Imóveis'),
-      ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding:
+              EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
           child: Column(
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  navigateToAddProperty();
-                },
-                child: Text('Adicionar Imóvel'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/toplogo.svg',
+                    width: 40.0,
+                    height: 40.0,
+                  ),
+                ],
               ),
               SizedBox(height: 20.0),
               Text(
@@ -121,6 +124,21 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
                     },
                   ),
                 ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  navigateToAddProperty();
+                },
+                icon: SvgPicture.asset(
+                  'assets/addplus.svg',
+                  // Substitua pelo caminho do seu ícone SVG
+                  height: 24, // Altura do ícone
+                  width: 24, // Largura do ícone
+                ),
+                label: Text('Adicionar imóvel'),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+                ),
+              ),
               if (userProperties.isEmpty) Text('Nenhum imóvel encontrado.'),
             ],
           ),

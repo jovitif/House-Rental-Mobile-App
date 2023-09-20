@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -198,13 +199,21 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Cadastro de Imóvel'),
-      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: ListView(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/toplogo.svg',
+                  width: 40.0,
+                  height: 40.0,
+                ),
+              ],
+            ),
+            SizedBox(height: 40.0),
             TextField(
               controller: titleController,
               decoration: InputDecoration(labelText: 'Título'),
@@ -288,12 +297,19 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                 pickImages();
               },
               child: Text('Selecionar Imagens'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+              ),
             ),
+            Spacer(),
             ElevatedButton(
               onPressed: () {
                 saveProperty();
               },
               child: Text('Salvar Imóvel'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+              ),
             ),
           ],
         ),
