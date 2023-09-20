@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:houserental/pages/edit_property_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PropertyDetailsPage extends StatefulWidget {
   final String propertyId;
@@ -15,6 +16,8 @@ class PropertyDetailsPage extends StatefulWidget {
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   Map<String, dynamic>? propertyData;
   bool isLoading = true;
+  User? currentUser = FirebaseAuth.instance.currentUser;
+  TextEditingController commentController = TextEditingController();
 
   @override
   void initState() {
@@ -76,14 +79,55 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
-  void editProperty(String propertyId) {
-    // Implemente a lógica de edição aqui, por exemplo, navegue para uma página de edição.
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => EditPropertyPage(propertyId: propertyId),
-    //   ),
-    // );
+  Future<void> addComment() async {
+    if (currentUser != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('properties')
+            .doc(widget.propertyId)
+            .collection('comments')
+            .add({
+          'text': commentController.text,
+          'timestamp': FieldValue.serverTimestamp(),
+          'userId': currentUser!.uid,
+        });
+
+        // Limpa o campo de texto após adicionar o comentário.
+        commentController.clear();
+      } catch (e) {
+        print('Erro ao adicionar comentário: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao adicionar comentário: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  void navigateToEditProperty(String propertyId) {
+    if (currentUser != null &&
+        propertyData != null &&
+        currentUser!.uid == propertyData!['ownerId']) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => EditPropertyPage(propertyId: propertyId),
+        ),
+      );
+    } else {
+      // O usuário atual não é o proprietário, então você pode exibir uma mensagem de erro ou tomar outra ação apropriada.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Você não tem permissão para editar esta propriedade.'),
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserData(String userId) async {
+    final userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    return userDoc.data() as Map<String, dynamic>;
   }
 
   @override
@@ -229,9 +273,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        if (currentUser != null &&
+                                  propertyData != null &&
+                                  currentUser!.uid == propertyData!['ownerId'])
                         ElevatedButton.icon(
                           onPressed: () {
-                            editProperty(widget.propertyId);
+                            navigateToEditProperty(widget.propertyId);
                           },
                           icon: SvgPicture.asset(
                             'assets/editpen.svg', // Substitua pelo caminho do seu ícone SVG
@@ -244,6 +291,9 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                           ),
                         ),
                         SizedBox(width: 10),
+                        if (currentUser != null &&
+                                  propertyData != null &&
+                                  currentUser!.uid == propertyData!['ownerId'])
                         ElevatedButton.icon(
                           onPressed: () {
                             deleteProperty(widget.propertyId);
@@ -259,6 +309,111 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                           ),
                         ),
                       ],
+                    SizedBox(height: 20),
+                    Text(
+                      'Comentários:',
+                      style: TextStyle(
+                          fontSize: 20.0, fontWeight: FontWeight.bold),
+                    ),
+                    if (currentUser != null &&
+                        propertyData != null &&
+                        currentUser!.uid != propertyData!['ownerId'])
+                      Column(
+                        children: [
+                          TextField(
+                            controller: commentController,
+                            decoration: InputDecoration(
+                              labelText: 'Adicionar Comentário',
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.send),
+                                onPressed: () {
+                                  addComment();
+                                },
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                        ],
+                      ),
+                    Expanded(
+                      child: StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('properties')
+                            .doc(widget.propertyId)
+                            .collection('comments')
+                            .orderBy('timestamp', descending: true)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return CircularProgressIndicator();
+                          }
+                          final comments = snapshot.data?.docs;
+                          List<Widget> commentWidgets = [];
+                          for (var comment in comments!) {
+                            final commentText = comment['text'];
+                            final commentUserId = comment['userId'];
+                            final commentTimestamp = comment['timestamp'];
+
+                            final commentWidget = FutureBuilder(
+                              future: getUserData(commentUserId),
+                              builder: (context, userDataSnapshot) {
+                                if (userDataSnapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  final userData = userDataSnapshot.data
+                                      as Map<String, dynamic>;
+                                  final username = userData['username'];
+                                  final profileImageUrl =
+                                      userData['profileImageUrl'];
+
+                                  return Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Nome do usuário
+                                        Text(
+                                          username ?? 'Nome do Usuário',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        // Data e hora do comentário
+                                        Text(
+                                          commentTimestamp != null
+                                              ? commentTimestamp
+                                                  .toDate()
+                                                  .toString()
+                                              : '',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        // Comentário
+                                        Text(
+                                          commentText,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Divider(),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  return CircularProgressIndicator();
+                                }
+                              },
+                            );
+                            commentWidgets.add(commentWidget);
+                          }
+                          return ListView(
+                            children: commentWidgets,
+                          );
+                        },
+                      ),
                     ),
                     SizedBox(height: 20),
                   ],
