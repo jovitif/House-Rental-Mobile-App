@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:houserental/components/classic_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -105,12 +106,27 @@ class _RegisterFormState extends State<RegisterForm> {
         // Envolve o Column com SingleChildScrollView
         child: Center(
           child: Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/Frame.png'),
-                SizedBox(height: 40.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/toplogo.svg',
+                      width: 40.0,
+                      height: 40.0,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.0),
+                Image.asset(
+                    'assets/Frame.png',
+                  width: 200.0,
+                  height: 200.0,
+                ),
+                SizedBox(height: 20.0),
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -192,7 +208,13 @@ class _RegisterFormState extends State<RegisterForm> {
                   onPressed: () {
                     pickImage();
                   },
-                  child: Text('Selecionar Imagem'),
+                  child: Text(
+                      'Selecionar Imagem',
+                  ),
+                  style: ButtonStyle(
+                    backgroundColor:
+                    MaterialStateProperty.all(Color(0xFF0D47A1)),
+                  ),
                 ),
                 SizedBox(height: 50.0),
                 ClassicButton(

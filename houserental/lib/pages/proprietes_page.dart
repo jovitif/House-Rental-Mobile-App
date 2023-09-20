@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:houserental/pages/property_details_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class PropertiesPage extends StatefulWidget {
   @override
@@ -56,14 +57,22 @@ class _PropertiesPageState extends State<PropertiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Todos os Imóveis'),
-      ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
           child: Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/toplogo.svg',
+                    width: 40.0,
+                    height: 40.0,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20.0),
               Text(
                 'Lista de Imóveis:',
                 style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),

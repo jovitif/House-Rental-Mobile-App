@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:houserental/components/classic_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -31,12 +32,27 @@ class _LoginPageState extends State<LoginPage> {
         // Adicione um SingleChildScrollView
         child: Center(
           child: Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/login.png'),
-                SizedBox(height: 40.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/toplogo.svg',
+                      width: 40.0,
+                      height: 40.0,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 80.0),
+                Image.asset(
+                    'assets/login.png',
+                  width: 200.0,
+                  height: 200.0,
+                ),
+                SizedBox(height: 20.0),
                 TextField(
                   controller:
                       emailController, // Use o controller para obter o valor
@@ -61,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text('Esqueceu a senha?'),
                   ),
                 ),
-                SizedBox(height: 50.0),
+                SizedBox(height: 20.0),
                 ClassicButton(
                   text: 'Entrar',
                   onPressed: () async {
@@ -78,16 +94,21 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 SizedBox(height: 40.0),
-                Text('Não tem uma conta?'),
-                SizedBox(height: 5.0),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
-                  child: Text(
-                    'Crie uma conta',
-                    style: TextStyle(color: Colors.blue),
-                  ),
+                Column(
+                  children: [
+                    Text('Não tem uma conta?'),
+                    SizedBox(height: 5.0),
+                    GestureDetector(
+                      onTap: () {
+                        // Navegar para a tela de registro
+                        Navigator.pushNamed(context, '/register');
+                      },
+                      child: Text(
+                        'Crie uma conta',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

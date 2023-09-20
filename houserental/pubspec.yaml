@@ -73,6 +73,7 @@ flutter:
     - assets/toplogo.svg
     - assets/login.png
     - assets/addplus.svg
+    - assets/Frame.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
