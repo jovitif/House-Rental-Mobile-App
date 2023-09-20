@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:houserental/pages/edit_property_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -132,97 +133,182 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Detalhes do Imóvel'),
-      ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
           child: isLoading
               ? CircularProgressIndicator()
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Detalhes do Imóvel:',
-                      style: TextStyle(
-                          fontSize: 20.0, fontWeight: FontWeight.bold),
-                    ),
+                    // Exiba a imagem do imóvel aqui
+                    if (propertyData!['images'] != null &&
+                        propertyData!['images'].isNotEmpty)
+                      Center(
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/toplogo.svg',
+                                  width: 40.0,
+                                  height: 40.0,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20.0),
+                            Center(
+                              child: SizedBox(
+                                height: 300,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: propertyData!['images'].length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    final imageUrl =
+                                        propertyData!['images'][index];
+                                    return Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(left: 00.0),
+                                        child: Center(
+                                          child: Image.network(
+                                            imageUrl,
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            height: 300,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    SizedBox(height: 20),
                     if (propertyData != null)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Título: ${propertyData!['title']}',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text('Preço: ${propertyData!['price']}'),
-                          Text('Descrição: ${propertyData!['description']}'),
-                          Text(
-                              'Especificação: ${propertyData!['specification']}'),
-                          Text('Status: ${propertyData!['status']}'),
-                          Text('Tipo: ${propertyData!['type']}'),
-                          Text('Localização: ${propertyData!['location']}'),
-                          // Exiba a imagem do imóvel aqui
-                          if (propertyData!['images'] != null &&
-                              propertyData!['images'].isNotEmpty)
-                            Column(
-                              children: [
-                                Text(
-                                  'Imagens:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(
-                                  height: 150,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: propertyData!['images'].length,
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      final imageUrl =
-                                          propertyData!['images'][index];
-                                      return Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Image.network(
-                                          imageUrl,
-                                          width: 150,
-                                          height: 150,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
+                            '${propertyData!['title']}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
                             ),
-                          SizedBox(height: 20),
-                          Row(
-                            children: [
-                              if (currentUser != null &&
-                                  propertyData != null &&
-                                  currentUser!.uid == propertyData!['ownerId'])
-                                ElevatedButton(
-                                  onPressed: () {
-                                    navigateToEditProperty(widget.propertyId);
-                                  },
-                                  child: Text('Editar'),
-                                ),
-                              SizedBox(width: 10),
-                              if (currentUser != null &&
-                                  propertyData != null &&
-                                  currentUser!.uid == propertyData!['ownerId'])
-                                ElevatedButton(
-                                  onPressed: () {
-                                    deleteProperty(widget.propertyId);
-                                  },
-                                  child: Text('Remover'),
-                                ),
-                            ],
                           ),
+                          SizedBox(height: 20),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Descrição: ${propertyData!['description']}',
+                                style: TextStyle(),
+                              ),
+                              Text(
+                                  'Especificação: ${propertyData!['specification']}'),
+                              SizedBox(height: 20),
+                              // Espaçamento entre a descrição/especificação e as informações abaixo
+
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Preço: R\$ ${propertyData!['price']}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Status: ${propertyData!['status']}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Tipo: ${propertyData!['type']}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                            'Localização: ${propertyData!['location']}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     if (propertyData == null)
                       Text('Detalhes do imóvel não encontrados.'),
+                    Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (currentUser != null &&
+                                  propertyData != null &&
+                                  currentUser!.uid == propertyData!['ownerId'])
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            navigateToEditProperty(widget.propertyId);
+                          },
+                          icon: SvgPicture.asset(
+                            'assets/editpen.svg', // Substitua pelo caminho do seu ícone SVG
+                            height: 24, // Altura do ícone
+                            width: 24, // Largura do ícone
+                          ),
+                          label: Text('Editar'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        if (currentUser != null &&
+                                  propertyData != null &&
+                                  currentUser!.uid == propertyData!['ownerId'])
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            deleteProperty(widget.propertyId);
+                          },
+                          icon: SvgPicture.asset(
+                            'assets/deletetrash.svg', // Substitua pelo caminho do seu ícone SVG
+                            height: 24, // Altura do ícone
+                            width: 24, // Largura do ícone
+                          ),
+                          label: Text('Excluir'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(Color(0xFFB71C1C)),
+                          ),
+                        ),
+                      ],
                     SizedBox(height: 20),
                     Text(
                       'Comentários:',
@@ -329,6 +415,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                         },
                       ),
                     ),
+                    SizedBox(height: 20),
                   ],
                 ),
         ),

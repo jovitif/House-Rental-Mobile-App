@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^0.22.0
   http: ^0.13.3
 
 
@@ -67,7 +68,11 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/
+    - assets/editpen.svg
+    - assets/deletetrash.svg
+    - assets/toplogo.svg
+    - assets/login.png
+    - assets/addplus.svg
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
