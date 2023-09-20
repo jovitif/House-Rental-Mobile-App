@@ -37,137 +37,142 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding:
-              EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (user != null)
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/toplogo.svg',
-                          width: 40.0,
-                          height: 40.0,
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            // SVG "toplogo" centrado
+            SvgPicture.asset(
+              'assets/toplogo.svg',
+              width: 40.0,
+              height: 40.0,
+            ),
+            SizedBox(height: 20.0),
+            Row(
+              children: [
+                // Coluna à esquerda com a foto de perfil, nome de usuário e email
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 20.0),
+                      FutureBuilder(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user!.uid)
+                            .get(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            final userData =
+                            snapshot.data?.data() as Map<String, dynamic>;
+                            final profileImageUrl =
+                            userData['profileImageUrl'];
+                            return CircleAvatar(
+                              radius: 60,
+                              backgroundColor: Colors.grey,
+                              child: ClipOval(
+                                child: profileImageUrl != null
+                                    ? Image.network(
+                                  profileImageUrl,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.asset(
+                                  'assets/default_avatar.png',
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        },
+                      ),
+                      SizedBox(height: 5.0),
+                      Text(
+                        user!.displayName ?? 'Não informado',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 40.0),
-                    FutureBuilder(
-                      future: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user!.uid)
-                          .get(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<DocumentSnapshot> snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          final userData =
-                              snapshot.data?.data() as Map<String, dynamic>;
-                          final profileImageUrl = userData['profileImageUrl'];
-
-                          return CircleAvatar(
-                            radius: 80,
-                            backgroundColor: Colors.grey,
-                            child: ClipOval(
-                              child: profileImageUrl != null
-                                  ? Image.network(
-                                      profileImageUrl,
-                                      width: 160,
-                                      height: 160,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Image.asset(
-                                      'assets/default_avatar.png',
-                                      width: 160,
-                                      height: 160,
-                                      fit: BoxFit.cover,
-                                    ),
-                            ),
-                          );
-                        } else {
-                          return CircularProgressIndicator();
-                        }
-                      },
-                    ),
-                    SizedBox(height: 20.0),
-                    Text(
-                      user!.displayName ?? 'Não informado',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    SizedBox(height: 10.0),
-                    Text(
-                      'Email:',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      SizedBox(height: 10.0),
+                      Text(
+                        'Email:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      user!.email ?? 'Não informado',
-                      style: TextStyle(
-                        fontSize: 16,
+                      Text(
+                        user!.email ?? 'Não informado',
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        navigateToMyProperties();
-                      },
-                      child: Text('Meus Imóveis'),
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Color(0xFF0D47A1)),
-                      ),
-                    ),
-                    SizedBox(height: 20.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        navigateToAddFriend();
-                      },
-                      child: Text('Adicionar Amigo'),
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Color(0xFF0D47A1)),
-                      ),
-                    ),
-                  ],
-                ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/all_properties');
-                },
-                child: Text('Ver Todos os Imóveis'),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
-                ),
-              ),
-              Spacer(),
-              SizedBox(height: 20.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      logout();
-                    },
-                    child: Text('Logout'),
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all(Color(0xFF0D47A1)),
-                    ),
+                    ],
                   ),
-                ],
-              )
-            ],
+                ),
+                SizedBox(width: 20.0),
+                SizedBox(height: 20.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          navigateToMyProperties();
+                        },
+                        child: Text('Meus Imóveis'),
+                        style: ButtonStyle(
+                          backgroundColor:
+                          MaterialStateProperty.all(Color(0xFF0D47A1)),
+                        ),
+                      ),
+                      SizedBox(height: 10.0),
+                      ElevatedButton(
+                        onPressed: () {
+                          navigateToAddFriend();
+                        },
+                        child: Text('Adicionar Amigo'),
+                        style: ButtonStyle(
+                          backgroundColor:
+                          MaterialStateProperty.all(Color(0xFF0D47A1)),
+                        ),
+                      ),
+                      SizedBox(height: 10.0),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/all_properties');
+                        },
+                        child: Text('Ver Todos os Imóveis'),
+                        style: ButtonStyle(
+                          backgroundColor:
+                          MaterialStateProperty.all(Color(0xFF0D47A1)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(right: 20.0, bottom: 20.0, left: 20.0),
+        child: ElevatedButton(
+          onPressed: () {
+            logout();
+          },
+          child: Text('Logout'),
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
           ),
         ),
       ),

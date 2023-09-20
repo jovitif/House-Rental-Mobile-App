@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AddFriendPage extends StatefulWidget {
   @override
@@ -28,13 +29,21 @@ class _AddFriendPageState extends State<AddFriendPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Todos os Usuários'),
-      ),
       body: Padding(
-        padding: EdgeInsets.all(20.0),
+        padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
         child: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/toplogo.svg',
+                  width: 40.0,
+                  height: 40.0,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20.0),
             if (allUsers.isNotEmpty)
               Expanded(
                 child: ListView.builder(
