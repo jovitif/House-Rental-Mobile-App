@@ -135,13 +135,13 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
+          padding:
+              EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
           child: isLoading
               ? CircularProgressIndicator()
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Exiba a imagem do imóvel aqui
                     if (propertyData!['images'] != null &&
                         propertyData!['images'].isNotEmpty)
                       Center(
@@ -213,8 +213,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                               Text(
                                   'Especificação: ${propertyData!['specification']}'),
                               SizedBox(height: 20),
-                              // Espaçamento entre a descrição/especificação e as informações abaixo
-
                               Row(
                                 children: [
                                   Expanded(
@@ -252,7 +250,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                           ),
                                         ),
                                         Text(
-                                            'Localização: ${propertyData!['location']}',
+                                          'Localização: ${propertyData!['location']}',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
@@ -274,41 +272,44 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         if (currentUser != null &&
-                                  propertyData != null &&
-                                  currentUser!.uid == propertyData!['ownerId'])
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            navigateToEditProperty(widget.propertyId);
-                          },
-                          icon: SvgPicture.asset(
-                            'assets/editpen.svg', // Substitua pelo caminho do seu ícone SVG
-                            height: 24, // Altura do ícone
-                            width: 24, // Largura do ícone
+                            propertyData != null &&
+                            currentUser!.uid == propertyData!['ownerId'])
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              navigateToEditProperty(widget.propertyId);
+                            },
+                            icon: SvgPicture.asset(
+                              'assets/editpen.svg',
+                              height: 24,
+                              width: 24,
+                            ),
+                            label: Text('Editar'),
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Color(0xFF0D47A1)),
+                            ),
                           ),
-                          label: Text('Editar'),
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
-                          ),
-                        ),
                         SizedBox(width: 10),
                         if (currentUser != null &&
-                                  propertyData != null &&
-                                  currentUser!.uid == propertyData!['ownerId'])
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            deleteProperty(widget.propertyId);
-                          },
-                          icon: SvgPicture.asset(
-                            'assets/deletetrash.svg', // Substitua pelo caminho do seu ícone SVG
-                            height: 24, // Altura do ícone
-                            width: 24, // Largura do ícone
+                            propertyData != null &&
+                            currentUser!.uid == propertyData!['ownerId'])
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              deleteProperty(widget.propertyId);
+                            },
+                            icon: SvgPicture.asset(
+                              'assets/deletetrash.svg',
+                              height: 24,
+                              width: 24,
+                            ),
+                            label: Text('Excluir'),
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Color(0xFFB71C1C)),
+                            ),
                           ),
-                          label: Text('Excluir'),
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Color(0xFFB71C1C)),
-                          ),
-                        ),
                       ],
+                    ),
                     SizedBox(height: 20),
                     Text(
                       'Comentários:',
@@ -372,7 +373,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        // Nome do usuário
                                         Text(
                                           username ?? 'Nome do Usuário',
                                           style: TextStyle(
@@ -380,7 +380,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                             fontSize: 16,
                                           ),
                                         ),
-                                        // Data e hora do comentário
                                         Text(
                                           commentTimestamp != null
                                               ? commentTimestamp
@@ -391,7 +390,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                             color: Colors.grey,
                                           ),
                                         ),
-                                        // Comentário
                                         Text(
                                           commentText,
                                           style: TextStyle(
