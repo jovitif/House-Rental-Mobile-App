@@ -16,6 +16,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   Map<String, dynamic>? propertyData;
   bool isLoading = true;
   User? currentUser = FirebaseAuth.instance.currentUser;
+  TextEditingController commentController = TextEditingController();
 
   @override
   void initState() {
@@ -77,6 +78,32 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
+  Future<void> addComment() async {
+    if (currentUser != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('properties')
+            .doc(widget.propertyId)
+            .collection('comments')
+            .add({
+          'text': commentController.text,
+          'timestamp': FieldValue.serverTimestamp(),
+          'userId': currentUser!.uid,
+        });
+
+        // Limpa o campo de texto após adicionar o comentário.
+        commentController.clear();
+      } catch (e) {
+        print('Erro ao adicionar comentário: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao adicionar comentário: $e'),
+          ),
+        );
+      }
+    }
+  }
+
   void navigateToEditProperty(String propertyId) {
     if (currentUser != null &&
         propertyData != null &&
@@ -94,6 +121,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         ),
       );
     }
+  }
+
+  Future<Map<String, dynamic>> getUserData(String userId) async {
+    final userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    return userDoc.data() as Map<String, dynamic>;
   }
 
   @override
@@ -162,33 +195,139 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                 ),
                               ],
                             ),
+                          SizedBox(height: 20),
+                          Row(
+                            children: [
+                              if (currentUser != null &&
+                                  propertyData != null &&
+                                  currentUser!.uid == propertyData!['ownerId'])
+                                ElevatedButton(
+                                  onPressed: () {
+                                    navigateToEditProperty(widget.propertyId);
+                                  },
+                                  child: Text('Editar'),
+                                ),
+                              SizedBox(width: 10),
+                              if (currentUser != null &&
+                                  propertyData != null &&
+                                  currentUser!.uid == propertyData!['ownerId'])
+                                ElevatedButton(
+                                  onPressed: () {
+                                    deleteProperty(widget.propertyId);
+                                  },
+                                  child: Text('Remover'),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     if (propertyData == null)
                       Text('Detalhes do imóvel não encontrados.'),
                     SizedBox(height: 20),
-                    Row(
-                      children: [
-                        if (currentUser != null &&
-                            propertyData != null &&
-                            currentUser!.uid == propertyData!['ownerId'])
-                          ElevatedButton(
-                            onPressed: () {
-                              navigateToEditProperty(widget.propertyId);
-                            },
-                            child: Text('Editar'),
+                    Text(
+                      'Comentários:',
+                      style: TextStyle(
+                          fontSize: 20.0, fontWeight: FontWeight.bold),
+                    ),
+                    if (currentUser != null &&
+                        propertyData != null &&
+                        currentUser!.uid != propertyData!['ownerId'])
+                      Column(
+                        children: [
+                          TextField(
+                            controller: commentController,
+                            decoration: InputDecoration(
+                              labelText: 'Adicionar Comentário',
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.send),
+                                onPressed: () {
+                                  addComment();
+                                },
+                              ),
+                            ),
                           ),
-                        SizedBox(width: 10),
-                        if (currentUser != null &&
-                            propertyData != null &&
-                            currentUser!.uid == propertyData!['ownerId'])
-                          ElevatedButton(
-                            onPressed: () {
-                              deleteProperty(widget.propertyId);
-                            },
-                            child: Text('Remover'),
-                          ),
-                      ],
+                          SizedBox(height: 10),
+                        ],
+                      ),
+                    Expanded(
+                      child: StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('properties')
+                            .doc(widget.propertyId)
+                            .collection('comments')
+                            .orderBy('timestamp', descending: true)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return CircularProgressIndicator();
+                          }
+                          final comments = snapshot.data?.docs;
+                          List<Widget> commentWidgets = [];
+                          for (var comment in comments!) {
+                            final commentText = comment['text'];
+                            final commentUserId = comment['userId'];
+                            final commentTimestamp = comment['timestamp'];
+
+                            final commentWidget = FutureBuilder(
+                              future: getUserData(commentUserId),
+                              builder: (context, userDataSnapshot) {
+                                if (userDataSnapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  final userData = userDataSnapshot.data
+                                      as Map<String, dynamic>;
+                                  final username = userData['username'];
+                                  final profileImageUrl =
+                                      userData['profileImageUrl'];
+
+                                  return Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Nome do usuário
+                                        Text(
+                                          username ?? 'Nome do Usuário',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        // Data e hora do comentário
+                                        Text(
+                                          commentTimestamp != null
+                                              ? commentTimestamp
+                                                  .toDate()
+                                                  .toString()
+                                              : '',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        // Comentário
+                                        Text(
+                                          commentText,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Divider(),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  return CircularProgressIndicator();
+                                }
+                              },
+                            );
+                            commentWidgets.add(commentWidget);
+                          }
+                          return ListView(
+                            children: commentWidgets,
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
