@@ -59,7 +59,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // SVG "toplogo" centrado
             SvgPicture.asset(
               'assets/toplogo.svg',
               width: 40.0,
