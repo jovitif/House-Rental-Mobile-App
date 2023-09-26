@@ -106,7 +106,8 @@ class _RegisterFormState extends State<RegisterForm> {
         // Envolve o Column com SingleChildScrollView
         child: Center(
           child: Padding(
-            padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
+            padding: EdgeInsets.only(
+                top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -122,7 +123,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 SizedBox(height: 20.0),
                 Image.asset(
-                    'assets/Frame.png',
+                  'assets/Frame.png',
                   width: 200.0,
                   height: 200.0,
                 ),
@@ -209,11 +210,11 @@ class _RegisterFormState extends State<RegisterForm> {
                     pickImage();
                   },
                   child: Text(
-                      'Selecionar Imagem',
+                    'Selecionar Imagem',
                   ),
                   style: ButtonStyle(
                     backgroundColor:
-                    MaterialStateProperty.all(Color(0xFF0D47A1)),
+                        MaterialStateProperty.all(Color(0xFF0D47A1)),
                   ),
                 ),
                 SizedBox(height: 50.0),

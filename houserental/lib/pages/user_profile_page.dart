@@ -14,24 +14,52 @@ class _UserProfilePageState extends State<UserProfilePage> {
   User? user;
   GoogleMapController? mapController;
   LatLng? currentPosition;
+  Set<Marker> propertyMarkers = Set<Marker>();
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _getCurrentUserData();
     user = FirebaseAuth.instance.currentUser;
+    _getCurrentLocation();
+    loadUserProperties(); // Carregue as propriedades do usuário ao inicializar a página
   }
 
-  Future<void> _getCurrentLocation() async {
-    Position position = await Geolocator.getCurrentPosition(
+  Future<void> _getCurrentUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userId = user.uid;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      final address = userDoc.get(
+          'city'); // Suponha que o endereço seja armazenado no Firestore como 'city'.
+      _getCurrentLocation(address);
+    }
+  }
+
+  Future<void> _getCurrentLocation([String? address]) async {
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      final status = await Geolocator.requestPermission();
+      if (status == LocationPermission.denied) {
+        // Handle the case where the user denies the permission request.
+        return;
+      }
+    }
+
+    final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
+
     setState(() {
       currentPosition = LatLng(position.latitude, position.longitude);
     });
 
-    // Mover a câmera do mapa para a nova posição atual
-    _moveCameraToCurrentPosition();
+    if (address != null) {
+      _moveCameraToCurrentPosition();
+    }
   }
 
   void _moveCameraToCurrentPosition() {
@@ -45,6 +73,67 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       );
     }
+  }
+
+  // Carregue as propriedades do usuário do Firestore e adicione marcadores no mapa
+  Future<void> loadUserProperties() async {
+    // Substitua 'properties' pelo nome da coleção de propriedades no Firestore
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('properties')
+        .where('ownerId', isEqualTo: user?.uid)
+        .get();
+
+    for (final doc in querySnapshot.docs) {
+      final propertyData = doc.data() as Map<String, dynamic>;
+      final latitude = propertyData['latitude'] as double;
+      final longitude = propertyData['longitude'] as double;
+      final propertyId = doc.id;
+      final photoUrl = propertyData['photoUrl'] as String;
+
+      final marker = Marker(
+        markerId: MarkerId(propertyId),
+        position: LatLng(latitude, longitude),
+        onTap: () {
+          // Exiba as informações da propriedade quando o marcador for tocado
+          showPropertyDetails(propertyData);
+        },
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueAzure,
+        ),
+      );
+
+      setState(() {
+        propertyMarkers.add(marker);
+      });
+    }
+  }
+
+  // Exiba informações da propriedade quando o marcador for tocado
+  void showPropertyDetails(Map<String, dynamic> propertyData) {
+    // Implemente a lógica para exibir informações da propriedade, como um BottomSheet
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                propertyData['title'],
+                style: TextStyle(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text('Preço: ${propertyData['price']}'),
+              Text('Descrição: ${propertyData['description']}'),
+              // Adicione mais campos e informações conforme necessário
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> logout() async {
@@ -76,33 +165,33 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       FutureBuilder(
                         future: FirebaseFirestore.instance
                             .collection('users')
-                            .doc(user!.uid)
+                            .doc(user
+                                ?.uid) // Usando o operador de navegação segura
                             .get(),
                         builder: (BuildContext context,
                             AsyncSnapshot<DocumentSnapshot> snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.done) {
                             final userData =
-                            snapshot.data?.data() as Map<String, dynamic>;
-                            final profileImageUrl =
-                            userData['profileImageUrl'];
+                                snapshot.data?.data() as Map<String, dynamic>;
+                            final profileImageUrl = userData['profileImageUrl'];
                             return CircleAvatar(
                               radius: 60,
                               backgroundColor: Colors.grey,
                               child: ClipOval(
                                 child: profileImageUrl != null
                                     ? Image.network(
-                                  profileImageUrl,
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                )
+                                        profileImageUrl,
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      )
                                     : Image.asset(
-                                  'assets/default_avatar.png',
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                ),
+                                        'assets/default_avatar.png',
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             );
                           } else {
@@ -112,7 +201,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ),
                       SizedBox(height: 5.0),
                       Text(
-                        user!.displayName ?? 'Não informado',
+                        user?.displayName ?? 'Não informado',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -127,7 +216,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ),
                       ),
                       Text(
-                        user!.email ?? 'Não informado',
+                        user?.email ?? 'Não informado',
                         style: TextStyle(
                           fontSize: 16,
                         ),
@@ -148,7 +237,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         child: Text('Meus Imóveis'),
                         style: ButtonStyle(
                           backgroundColor:
-                          MaterialStateProperty.all(Color(0xFF0D47A1)),
+                              MaterialStateProperty.all(Color(0xFF0D47A1)),
                         ),
                       ),
                       SizedBox(height: 10.0),
@@ -159,7 +248,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         child: Text('Adicionar Amigo'),
                         style: ButtonStyle(
                           backgroundColor:
-                          MaterialStateProperty.all(Color(0xFF0D47A1)),
+                              MaterialStateProperty.all(Color(0xFF0D47A1)),
                         ),
                       ),
                       SizedBox(height: 10.0),
@@ -170,7 +259,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         child: Text('Ver Todos os Imóveis'),
                         style: ButtonStyle(
                           backgroundColor:
-                          MaterialStateProperty.all(Color(0xFF0D47A1)),
+                              MaterialStateProperty.all(Color(0xFF0D47A1)),
                         ),
                       ),
                     ],
@@ -179,6 +268,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ],
             ),
             const SizedBox(height: 50.0),
+
+            // Mapa para mostrar a localização atual e marcadores de propriedades
             Container(
               height: 350.0,
               child: GoogleMap(
@@ -191,6 +282,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     mapController = controller;
                   });
                 },
+                markers: {
+                  if (currentPosition != null)
+                    Marker(
+                      markerId: MarkerId('current_location'),
+                      position: currentPosition!,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueAzure,
+                      ),
+                    ),
+                  // Adicione os marcadores de propriedades aqui
+                  ...propertyMarkers,
+                },
+                compassEnabled: true, // Ative a bússola
               ),
             ),
           ],

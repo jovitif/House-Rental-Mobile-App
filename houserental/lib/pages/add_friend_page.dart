@@ -10,6 +10,7 @@ class AddFriendPage extends StatefulWidget {
 
 class _AddFriendPageState extends State<AddFriendPage> {
   List<DocumentSnapshot> allUsers = [];
+  User? currentUser;
 
   void getAllUsers() async {
     final userCollection = FirebaseFirestore.instance.collection('users');
@@ -24,13 +25,15 @@ class _AddFriendPageState extends State<AddFriendPage> {
   void initState() {
     super.initState();
     getAllUsers();
+    currentUser = FirebaseAuth.instance.currentUser;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
+        padding:
+            EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
         child: Column(
           children: [
             Row(
@@ -51,13 +54,17 @@ class _AddFriendPageState extends State<AddFriendPage> {
                   itemBuilder: (BuildContext context, int index) {
                     final userData =
                         allUsers[index].data() as Map<String, dynamic>;
-                    final username =
-                        userData['username']; // Substitua pelo campo correto.
-                    final userId = allUsers[index].id;
+                    final username = userData['username'];
+
+                    // Exclua o usuário atual da lista
+                    if (currentUser != null &&
+                        currentUser!.uid == allUsers[index].id) {
+                      return SizedBox.shrink();
+                    }
 
                     return ListTile(
                       title: Text(username ?? 'Nome de Usuário'),
-                      subtitle: Text('ID: $userId'),
+                      subtitle: Text('ID: ${allUsers[index].id}'),
                     );
                   },
                 ),

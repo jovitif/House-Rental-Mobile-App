@@ -262,7 +262,29 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
             ),
             TextField(
               controller: cepController,
-              decoration: InputDecoration(labelText: 'CEP'),
+              decoration: InputDecoration(labelText: 'CEP ou Endereço'),
+              onChanged: (value) {
+                // Limpe as informações de localização existentes ao editar o campo
+                setState(() {
+                  latitude = null;
+                  longitude = null;
+                  street = null;
+                  city = null;
+                  country = null;
+                });
+              },
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Adicione este trecho para buscar a localização
+                if (cepController.text.isNotEmpty) {
+                  searchLocation(cepController.text);
+                }
+              },
+              child: Text('Buscar Localização'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+              ),
             ),
             if (latitude != null && longitude != null)
               Container(
