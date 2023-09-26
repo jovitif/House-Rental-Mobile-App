@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -120,14 +121,19 @@ class _EditPropertyPageState extends State<EditPropertyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Editar Propriedade'),
-      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: SvgPicture.asset(
+                'assets/toplogo.svg',
+                width: 40.0,
+                height: 40.0,
+              ),
+            ),
+            SizedBox(height: 20.0),
             Text(
               'Editar Detalhes da Propriedade',
               style: TextStyle(
@@ -200,13 +206,19 @@ class _EditPropertyPageState extends State<EditPropertyPage> {
               onPressed: () {
                 addImage();
               },
-              child: Text('Adicionar Foto'),
+              child: Text('Adicionar Foto',),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 updateProperty();
               },
               child: Text('Salvar'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF0D47A1)),
+              ),
             ),
           ],
         ),
