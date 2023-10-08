@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:houserental/pages/property_details_page.dart';
-
-import 'add_property_page.dart';
+import 'package:houserental/pages/add_property_page.dart';
 
 class MyPropertiesPage extends StatefulWidget {
   @override
@@ -104,21 +103,46 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
                       final property =
                           userProperties[index].data() as Map<String, dynamic>;
                       final propertyId = userProperties[index].id;
-                      final imageUrl = property[
-                          'imageUrl']; // Adicione o campo de URL da imagem
+                      final imageUrls = property['images'] != null
+                          ? List<String>.from(property['images'])
+                          : [];
+                      final imageUrl =
+                          imageUrls.isNotEmpty ? imageUrls[0] : null;
 
                       return InkWell(
                         onTap: () {
                           viewPropertyDetails(propertyId);
                         },
-                        child: ListTile(
-                          title: Text(property['title']),
-                          subtitle: Text('Preço: ${property['price']}'),
-                          leading: imageUrl != null
-                              ? Image.network(imageUrl) // Exiba a imagem
-                              : Icon(Icons
-                                  .image), // Ícone padrão se a imagem não estiver disponível
-                          // Adicione mais informações aqui, conforme necessário.
+                        child: Card(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
+                            children: [
+                              Stack(
+                                children: [
+                                  imageUrl != null
+                                      ? Image.network(
+                                          imageUrl,
+                                          height: 200.0,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          height: 200.0,
+                                          width: double.infinity,
+                                          color: Colors.grey,
+                                        ),
+                                ],
+                              ),
+                              ListTile(
+                                title: Text(property['title']),
+                                subtitle:
+                                    Text('Preço: ${property['price']} RS'),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -130,9 +154,8 @@ class _MyPropertiesPageState extends State<MyPropertiesPage> {
                 },
                 icon: SvgPicture.asset(
                   'assets/addplus.svg',
-                  // Substitua pelo caminho do seu ícone SVG
-                  height: 24, // Altura do ícone
-                  width: 24, // Largura do ícone
+                  height: 24,
+                  width: 24,
                 ),
                 label: Text('Adicionar imóvel'),
                 style: ButtonStyle(

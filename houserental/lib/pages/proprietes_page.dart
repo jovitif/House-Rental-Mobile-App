@@ -13,11 +13,15 @@ class _PropertiesPageState extends State<PropertiesPage> {
   late List<QueryDocumentSnapshot> userProperties = [];
 
   Future<void> loadAllProperties() async {
-    final allPropertiesSnapshot =
-        await FirebaseFirestore.instance.collection('properties').get();
-    setState(() {
-      userProperties = allPropertiesSnapshot.docs;
-    });
+    try {
+      final allPropertiesSnapshot =
+          await FirebaseFirestore.instance.collection('properties').get();
+      setState(() {
+        userProperties = allPropertiesSnapshot.docs;
+      });
+    } catch (e) {
+      print('Erro ao carregar imóveis: $e');
+    }
   }
 
   Future<void> deleteProperty(String propertyId) async {
@@ -26,8 +30,7 @@ class _PropertiesPageState extends State<PropertiesPage> {
           .collection('properties')
           .doc(propertyId)
           .delete();
-      // Recarregue a lista de imóveis após excluir um imóvel.
-      await loadAllProperties();
+      await loadAllProperties(); // Recarregue a lista de imóveis após excluir um imóvel.
     } catch (e) {
       print('Erro ao excluir imóvel: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,7 +42,6 @@ class _PropertiesPageState extends State<PropertiesPage> {
   }
 
   void viewPropertyDetails(String propertyId) {
-    // Navegue para uma nova página de detalhes do imóvel quando o usuário clicar em um item da lista.
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -59,8 +61,9 @@ class _PropertiesPageState extends State<PropertiesPage> {
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
+          padding: EdgeInsets.all(20.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -85,44 +88,45 @@ class _PropertiesPageState extends State<PropertiesPage> {
                       final property =
                           userProperties[index].data() as Map<String, dynamic>;
                       final propertyId = userProperties[index].id;
-                      final imageUrl = property['imageUrl'];
-                      final ownerId = property['ownerId'];
+                      final imageUrl = property['images'] != null
+                          ? property['images'][0]
+                          : null; // Use 'images' em vez de 'images[0]'
 
                       return InkWell(
                         onTap: () {
                           viewPropertyDetails(propertyId);
                         },
-                        child: ListTile(
-                          title: Text(property['title']),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Card(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
                             children: [
-                              Text('Preço: ${property['price']}'),
-                              FutureBuilder(
-                                future: FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(ownerId)
-                                    .get(),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<DocumentSnapshot> snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.done) {
-                                    final userData = snapshot.data?.data()
-                                        as Map<String, dynamic>;
-                                    final username = userData['username'] ??
-                                        'Nome não informado';
-                                    return Text(
-                                        'Nome do Proprietário: $username');
-                                  } else {
-                                    return CircularProgressIndicator();
-                                  }
-                                },
+                              Stack(
+                                children: [
+                                  if (imageUrl != null)
+                                    Image.network(
+                                      imageUrl,
+                                      height: 200.0,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    )
+                                  else
+                                    Container(
+                                      height: 200.0,
+                                      width: double.infinity,
+                                      color: Colors.grey,
+                                    ),
+                                ],
+                              ),
+                              ListTile(
+                                title: Text(property['title']),
+                                subtitle:
+                                    Text('Preço: ${property['price']} RS'),
                               ),
                             ],
                           ),
-                          leading: imageUrl != null
-                              ? Image.network(imageUrl)
-                              : Icon(Icons.image),
                         ),
                       );
                     },

@@ -349,66 +349,78 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                             return CircularProgressIndicator();
                           }
                           final comments = snapshot.data?.docs;
-                          List<Widget> commentWidgets = [];
-                          for (var comment in comments!) {
-                            final commentText = comment['text'];
-                            final commentUserId = comment['userId'];
-                            final commentTimestamp = comment['timestamp'];
+                          return ListView.builder(
+                            itemCount: comments!.length,
+                            itemBuilder: (context, index) {
+                              final comment = comments[index];
+                              final commentText = comment['text'];
+                              final commentUserId = comment['userId'];
+                              final commentTimestamp = comment['timestamp'];
 
-                            final commentWidget = FutureBuilder(
-                              future: getUserData(commentUserId),
-                              builder: (context, userDataSnapshot) {
-                                if (userDataSnapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  final userData = userDataSnapshot.data
-                                      as Map<String, dynamic>;
-                                  final username = userData['username'];
-                                  final profileImageUrl =
-                                      userData['profileImageUrl'];
+                              return FutureBuilder(
+                                future: getUserData(commentUserId),
+                                builder: (context, userDataSnapshot) {
+                                  if (userDataSnapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    final userData = userDataSnapshot.data
+                                        as Map<String, dynamic>;
+                                    final username = userData['username'];
+                                    final profileImageUrl =
+                                        userData['profileImageUrl'];
 
-                                  return Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          username ?? 'Nome do Usuário',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
+                                    return Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              if (profileImageUrl != null)
+                                                CircleAvatar(
+                                                  backgroundImage: NetworkImage(
+                                                      profileImageUrl),
+                                                  radius: 16.0,
+                                                )
+                                              else
+                                                Icon(Icons.person, size: 32.0),
+                                              SizedBox(width: 8.0),
+                                              Text(
+                                                username ?? 'Nome do Usuário',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        Text(
-                                          commentTimestamp != null
-                                              ? commentTimestamp
-                                                  .toDate()
-                                                  .toString()
-                                              : '',
-                                          style: TextStyle(
-                                            color: Colors.grey,
+                                          Text(
+                                            commentTimestamp != null
+                                                ? commentTimestamp
+                                                    .toDate()
+                                                    .toString()
+                                                : '',
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          commentText,
-                                          style: TextStyle(
-                                            fontSize: 16,
+                                          Text(
+                                            commentText,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                            ),
                                           ),
-                                        ),
-                                        Divider(),
-                                      ],
-                                    ),
-                                  );
-                                } else {
-                                  return CircularProgressIndicator();
-                                }
-                              },
-                            );
-                            commentWidgets.add(commentWidget);
-                          }
-                          return ListView(
-                            children: commentWidgets,
+                                          Divider(),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    return CircularProgressIndicator();
+                                  }
+                                },
+                              );
+                            },
                           );
                         },
                       ),

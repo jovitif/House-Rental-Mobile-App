@@ -10,9 +10,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-enum Status { comprar, vender, negociar }
+enum Status { alugar, comprar, negociar }
 
-enum Tipo { casa, apartamento, condominio }
+enum Tipo { apartamento, casa, condominio }
 
 class AddPropertyPage extends StatefulWidget {
   @override
@@ -178,8 +178,8 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     switch (status) {
       case Status.comprar:
         return 'Comprar';
-      case Status.vender:
-        return 'Vender';
+      case Status.alugar:
+        return 'Alugar';
       case Status.negociar:
         return 'Negociar';
     }

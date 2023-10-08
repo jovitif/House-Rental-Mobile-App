@@ -55,6 +55,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     final userData =
                         allUsers[index].data() as Map<String, dynamic>;
                     final username = userData['username'];
+                    final profileImageUrl = userData['profileImageUrl'];
 
                     // Exclua o usuário atual da lista
                     if (currentUser != null &&
@@ -63,6 +64,12 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     }
 
                     return ListTile(
+                      leading: profileImageUrl != null
+                          ? CircleAvatar(
+                              backgroundImage: NetworkImage(profileImageUrl),
+                              radius: 24.0,
+                            )
+                          : Icon(Icons.person, size: 48.0),
                       title: Text(username ?? 'Nome de Usuário'),
                       subtitle: Text('ID: ${allUsers[index].id}'),
                     );

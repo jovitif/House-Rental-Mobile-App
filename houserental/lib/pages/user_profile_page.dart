@@ -22,7 +22,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _getCurrentUserData();
     user = FirebaseAuth.instance.currentUser;
     _getCurrentLocation();
-    loadUserProperties(); // Carregue as propriedades do usuário ao inicializar a página
   }
 
   Future<void> _getCurrentUserData() async {
@@ -33,9 +32,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
           .collection('users')
           .doc(userId)
           .get();
-      final address = userDoc.get(
-          'city'); // Suponha que o endereço seja armazenado no Firestore como 'city'.
-      _getCurrentLocation(address);
+      final address = userDoc.get('city');
+
+      // Verifica se o endereço não é nulo antes de chamar _getCurrentLocation
+      if (address != null) {
+        _getCurrentLocation(address);
+      } else {
+        // Trate o caso em que o endereço é nulo (por exemplo, mostrando uma mensagem ao usuário)
+      }
     }
   }
 
@@ -60,6 +64,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (address != null) {
       _moveCameraToCurrentPosition();
     }
+
+    loadUserProperties(); // Carregue as propriedades do usuário após obter a localização atual.
   }
 
   void _moveCameraToCurrentPosition() {
@@ -78,10 +84,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   // Carregue as propriedades do usuário do Firestore e adicione marcadores no mapa
   Future<void> loadUserProperties() async {
     // Substitua 'properties' pelo nome da coleção de propriedades no Firestore
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('properties')
-        .where('ownerId', isEqualTo: user?.uid)
-        .get();
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('properties').get();
 
     for (final doc in querySnapshot.docs) {
       final propertyData = doc.data() as Map<String, dynamic>;
@@ -164,8 +168,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       FutureBuilder(
                         future: FirebaseFirestore.instance
                             .collection('users')
-                            .doc(user
-                                ?.uid) // Usando o operador de navegação segura
+                            .doc(user?.uid)
                             .get(),
                         builder: (BuildContext context,
                             AsyncSnapshot<DocumentSnapshot> snapshot) {
