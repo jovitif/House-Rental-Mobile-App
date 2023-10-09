@@ -133,45 +133,47 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding:
-              EdgeInsets.only(top: 40.0, bottom: 20.0, left: 20.0, right: 20.0),
-          child: isLoading
-              ? CircularProgressIndicator()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (propertyData!['images'] != null &&
-                        propertyData!['images'].isNotEmpty)
-                      Center(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/toplogo.svg',
-                                  width: 40.0,
-                                  height: 40.0,
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 20.0),
-                            Center(
-                              child: SizedBox(
-                                height: 300,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: propertyData!['images'].length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    final imageUrl =
-                                        propertyData!['images'][index];
-                                    return Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.only(left: 00.0),
-                                        child: Center(
+      appBar: AppBar(
+        title: Text('Detalhes da Propriedade'),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: isLoading
+                ? CircularProgressIndicator()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (propertyData!['images'] != null &&
+                          propertyData!['images'].isNotEmpty)
+                        Center(
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/toplogo.svg',
+                                    width: 40.0,
+                                    height: 40.0,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20.0),
+                              Center(
+                                child: SizedBox(
+                                  height: 300,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: propertyData!['images'].length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final imageUrl =
+                                          propertyData!['images'][index];
+                                      return Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(8.0),
                                           child: Image.network(
                                             imageUrl,
                                             width: MediaQuery.of(context)
@@ -181,178 +183,180 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                             fit: BoxFit.cover,
                                           ),
                                         ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      SizedBox(height: 20),
+                      if (propertyData != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${propertyData!['title']}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 30,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Descrição: ${propertyData!['description']}',
+                                  style: TextStyle(),
+                                ),
+                                Text(
+                                    'Especificação: ${propertyData!['specification']}'),
+                                SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Preço: R\$ ${propertyData!['price']}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Status: ${propertyData!['status']}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    );
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Tipo: ${propertyData!['type']}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Localização: ${propertyData!['location']}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      if (propertyData == null)
+                        Text('Detalhes do imóvel não encontrados.'),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (currentUser != null &&
+                              propertyData != null &&
+                              currentUser!.uid == propertyData!['ownerId'])
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                navigateToEditProperty(widget.propertyId);
+                              },
+                              icon: SvgPicture.asset(
+                                'assets/editpen.svg',
+                                height: 24,
+                                width: 24,
+                              ),
+                              label: Text('Editar'),
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                    Color(0xFF0D47A1)),
+                              ),
+                            ),
+                          SizedBox(width: 10),
+                          if (currentUser != null &&
+                              propertyData != null &&
+                              currentUser!.uid == propertyData!['ownerId'])
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                deleteProperty(widget.propertyId);
+                              },
+                              icon: SvgPicture.asset(
+                                'assets/deletetrash.svg',
+                                height: 24,
+                                width: 24,
+                              ),
+                              label: Text('Excluir'),
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                    Color(0xFFB71C1C)),
+                              ),
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Comentários:',
+                        style: TextStyle(
+                            fontSize: 20.0, fontWeight: FontWeight.bold),
+                      ),
+                      if (currentUser != null &&
+                          propertyData != null &&
+                          currentUser!.uid != propertyData!['ownerId'])
+                        Column(
+                          children: [
+                            TextField(
+                              controller: commentController,
+                              decoration: InputDecoration(
+                                labelText: 'Adicionar Comentário',
+                                suffixIcon: IconButton(
+                                  icon: Icon(Icons.send),
+                                  onPressed: () {
+                                    addComment();
                                   },
                                 ),
                               ),
                             ),
+                            SizedBox(height: 10),
                           ],
                         ),
-                      ),
-                    SizedBox(height: 20),
-                    if (propertyData != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${propertyData!['title']}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 30,
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Descrição: ${propertyData!['description']}',
-                                style: TextStyle(),
-                              ),
-                              Text(
-                                  'Especificação: ${propertyData!['specification']}'),
-                              SizedBox(height: 20),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Preço: R\$ ${propertyData!['price']}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Status: ${propertyData!['status']}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Tipo: ${propertyData!['type']}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Localização: ${propertyData!['location']}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    if (propertyData == null)
-                      Text('Detalhes do imóvel não encontrados.'),
-                    Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (currentUser != null &&
-                            propertyData != null &&
-                            currentUser!.uid == propertyData!['ownerId'])
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              navigateToEditProperty(widget.propertyId);
-                            },
-                            icon: SvgPicture.asset(
-                              'assets/editpen.svg',
-                              height: 24,
-                              width: 24,
-                            ),
-                            label: Text('Editar'),
-                            style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all(Color(0xFF0D47A1)),
-                            ),
-                          ),
-                        SizedBox(width: 10),
-                        if (currentUser != null &&
-                            propertyData != null &&
-                            currentUser!.uid == propertyData!['ownerId'])
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              deleteProperty(widget.propertyId);
-                            },
-                            icon: SvgPicture.asset(
-                              'assets/deletetrash.svg',
-                              height: 24,
-                              width: 24,
-                            ),
-                            label: Text('Excluir'),
-                            style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all(Color(0xFFB71C1C)),
-                            ),
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Comentários:',
-                      style: TextStyle(
-                          fontSize: 20.0, fontWeight: FontWeight.bold),
-                    ),
-                    if (currentUser != null &&
-                        propertyData != null &&
-                        currentUser!.uid != propertyData!['ownerId'])
-                      Column(
-                        children: [
-                          TextField(
-                            controller: commentController,
-                            decoration: InputDecoration(
-                              labelText: 'Adicionar Comentário',
-                              suffixIcon: IconButton(
-                                icon: Icon(Icons.send),
-                                onPressed: () {
-                                  addComment();
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                        ],
-                      ),
-                    Expanded(
-                      child: StreamBuilder(
-                        stream: FirebaseFirestore.instance
+                      // Consulta ao Firestore para obter os comentários
+                      FutureBuilder<QuerySnapshot>(
+                        future: FirebaseFirestore.instance
                             .collection('properties')
                             .doc(widget.propertyId)
                             .collection('comments')
                             .orderBy('timestamp', descending: true)
-                            .snapshots(),
+                            .get(),
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return CircularProgressIndicator();
                           }
+                          if (snapshot.hasError) {
+                            return Text('Erro: ${snapshot.error}');
+                          }
                           final comments = snapshot.data?.docs;
-                          return ListView.builder(
-                            itemCount: comments!.length,
-                            itemBuilder: (context, index) {
-                              final comment = comments[index];
+
+                          return Column(
+                            children: comments!.map((comment) {
                               final commentText = comment['text'];
                               final commentUserId = comment['userId'];
                               final commentTimestamp = comment['timestamp'];
@@ -420,14 +424,13 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                                   }
                                 },
                               );
-                            },
+                            }).toList(),
                           );
                         },
                       ),
-                    ),
-                    SizedBox(height: 20),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
