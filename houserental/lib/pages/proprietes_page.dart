@@ -80,7 +80,11 @@ class _PropertiesPageState extends State<PropertiesPage> {
                 'Lista de Imóveis:',
                 style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
-              if (userProperties.isNotEmpty)
+              if (userProperties.isEmpty)
+                Center(
+                  child: Text('Nenhum imóvel encontrado.'),
+                )
+              else
                 Expanded(
                   child: ListView.builder(
                     itemCount: userProperties.length,
@@ -90,7 +94,7 @@ class _PropertiesPageState extends State<PropertiesPage> {
                       final propertyId = userProperties[index].id;
                       final imageUrl = property['images'] != null
                           ? property['images'][0]
-                          : null; // Use 'images' em vez de 'images[0]'
+                          : null;
 
                       return InkWell(
                         onTap: () {
@@ -132,7 +136,6 @@ class _PropertiesPageState extends State<PropertiesPage> {
                     },
                   ),
                 ),
-              if (userProperties.isEmpty) Text('Nenhum imóvel encontrado.'),
             ],
           ),
         ),
