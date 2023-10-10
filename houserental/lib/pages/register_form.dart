@@ -20,6 +20,9 @@ class _RegisterFormState extends State<RegisterForm> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController repeatPasswordController = TextEditingController();
   TextEditingController usernameController = TextEditingController();
+  TextEditingController phoneNumberController =
+      TextEditingController(); // Adicionado campo de telefone
+
   TextEditingController cityController = TextEditingController();
   File? profileImage;
 
@@ -27,8 +30,10 @@ class _RegisterFormState extends State<RegisterForm> {
     String email = emailController.text;
     String password = passwordController.text;
     String repeatPassword = repeatPasswordController.text;
-    String username = usernameController.text;
     String city = cityController.text;
+    String username = usernameController.text;
+    String phoneNumber =
+        phoneNumberController.text; // Adicionado campo de telefone
 
     if (password != repeatPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,6 +85,10 @@ class _RegisterFormState extends State<RegisterForm> {
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'profileImageUrl': imageUrl,
           'city': cityController.text,
+          'username':
+              usernameController.text, // Corrigido para usar usernameController
+          'phoneNumber': phoneNumberController
+              .text, // Corrigido para usar phoneNumberController
         });
       } catch (e) {
         print('Erro ao fazer upload da imagem: $e');
@@ -155,6 +164,14 @@ class _RegisterFormState extends State<RegisterForm> {
                   controller: usernameController,
                   decoration: InputDecoration(
                     hintText: 'Nome de Usuário',
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                TextField(
+                  controller:
+                      phoneNumberController, // Adicionado campo de telefone
+                  decoration: InputDecoration(
+                    hintText: 'Número de Telefone',
                   ),
                 ),
                 SizedBox(height: 20.0),

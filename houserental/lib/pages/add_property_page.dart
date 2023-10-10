@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,7 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-enum Status { alugar, comprar, negociar }
+enum Status { alugar, comprar, negociar, compartilhar }
 
 enum Tipo { apartamento, casa, condominio }
 
@@ -24,10 +23,9 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController specificationController = TextEditingController();
-  Status selectedStatus = Status.comprar; // Valor padrão
-  Tipo selectedType = Tipo.casa; // Valor padrão
-  final TextEditingController cepController =
-      TextEditingController(); // Campo para o CEP
+  Status selectedStatus = Status.comprar;
+  Tipo selectedType = Tipo.casa;
+  final TextEditingController cepController = TextEditingController();
   double? latitude;
   double? longitude;
   String? street;
@@ -38,9 +36,7 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   @override
   void initState() {
     super.initState();
-    // Adicione um ouvinte para o campo de localização
     cepController.addListener(() {
-      // Verifique se o campo CEP não está vazio
       if (cepController.text.isNotEmpty) {
         searchLocation(cepController.text);
       }
@@ -56,8 +52,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         propertyImages =
             pickedImages.map((pickedFile) => File(pickedFile.path)).toList();
       });
-    } else {
-      // O usuário não selecionou nenhuma imagem.
     }
   }
 
@@ -70,9 +64,7 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   }
 
   Future<void> searchLocation(String cep) async {
-    // Use a API de geocodificação (por exemplo, OpenCage) para obter informações de localização a partir do CEP.
-    final apiKey =
-        'e6ba151fbb4b4aacb1c05cd1cd17078c'; // Substitua pela sua chave
+    final apiKey = 'e6ba151fbb4b4aacb1c05cd1cd17078c';
     final query = Uri.encodeComponent(cep);
 
     final response = await http.get(
@@ -100,18 +92,11 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
           city = formattedCity;
           country = formattedCountry;
         });
-      } else {
-        // Não foram encontrados resultados.
-        // Trate isso de acordo com a sua lógica.
       }
-    } else {
-      // Erro ao chamar a API OpenCage.
-      // Trate isso de acordo com a sua lógica.
     }
   }
 
   Future<void> saveProperty() async {
-    // Verifique se todos os campos necessários estão preenchidos
     if (titleController.text.isEmpty ||
         priceController.text.isEmpty ||
         descriptionController.text.isEmpty ||
@@ -122,30 +107,32 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     }
 
     try {
-      // Obtenha o usuário atualmente logado
       final User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Crie um mapa com os dados do imóvel
+        final String? username = user.displayName;
+        final String? profileImageUrl = user.photoURL;
+        final String? phoneNumber = user.phoneNumber;
+
         final propertyData = {
           'title': titleController.text,
           'price': priceController.text,
           'description': descriptionController.text,
           'specification': specificationController.text,
-          'status':
-              statusToString(selectedStatus), // Converter enum para string
-          'type': typeToString(selectedType), // Converter enum para string
+          'status': statusToString(selectedStatus),
+          'type': typeToString(selectedType),
           'location': cepController.text,
           'latitude': latitude,
           'longitude': longitude,
-          'ownerId': user.uid, // Associe o imóvel ao ID do usuário
+          'ownerId': user.uid,
+          'username': username,
+          'profileImageUrl': profileImageUrl,
+          'phoneNumber': phoneNumber,
         };
 
-        // Substitua 'properties' pelo nome da sua coleção no Firestore
         final propertyRef = await FirebaseFirestore.instance
             .collection('properties')
             .add(propertyData);
 
-        // Faça upload das imagens para o Firebase Storage
         for (int i = 0; i < propertyImages.length; i++) {
           final imageFile = propertyImages[i];
           if (imageFile != null) {
@@ -154,7 +141,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
             await imageRef.putFile(imageFile);
             final imageUrl = await imageRef.getDownloadURL();
 
-            // Associe o URL da imagem ao documento do imóvel
             await propertyRef.update({
               'images': FieldValue.arrayUnion([imageUrl])
             });
@@ -162,14 +148,11 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         }
 
         showSnackBar('Imóvel salvo com sucesso.');
-        // Você pode exibir uma mensagem de sucesso ou navegar para outra página aqui.
       } else {
         showSnackBar('Você não está logado.');
-        // O usuário não está logado; faça algo para lidar com isso.
       }
     } catch (e) {
       showSnackBar('Erro ao salvar imóvel: $e');
-      // Lidar com erros, como falha ao salvar no Firestore.
       print('Erro ao salvar imóvel: $e');
     }
   }
@@ -182,6 +165,8 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         return 'Alugar';
       case Status.negociar:
         return 'Negociar';
+      case Status.compartilhar:
+        return 'Compartilhar';
     }
   }
 
@@ -264,7 +249,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
               controller: cepController,
               decoration: InputDecoration(labelText: 'CEP ou Endereço'),
               onChanged: (value) {
-                // Limpe as informações de localização existentes ao editar o campo
                 setState(() {
                   latitude = null;
                   longitude = null;
@@ -276,7 +260,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Adicione este trecho para buscar a localização
                 if (cepController.text.isNotEmpty) {
                   searchLocation(cepController.text);
                 }
@@ -292,7 +275,7 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                 child: GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: LatLng(latitude!, longitude!),
-                    zoom: 15.0, // Ajuste o nível de zoom conforme necessário
+                    zoom: 15.0,
                   ),
                   markers: {
                     Marker(
