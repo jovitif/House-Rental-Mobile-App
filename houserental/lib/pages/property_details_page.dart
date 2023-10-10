@@ -133,9 +133,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Detalhes da Propriedade'),
-      ),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
