@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:houserental/pages/property_details_page.dart'; // Importe a página PropertyDetailsPage
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -15,6 +19,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   GoogleMapController? mapController;
   LatLng? currentPosition;
   Set<Marker> propertyMarkers = Set<Marker>();
+  late BitmapDescriptor customRedMarkerIcon; // Ícone personalizado vermelho
 
   @override
   void initState() {
@@ -22,6 +27,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _getCurrentUserData();
     user = FirebaseAuth.instance.currentUser;
     _getCurrentLocation();
+    _createCustomRedMarkerIcon(); // Crie o ícone personalizado vermelho
+    // Carregar todas as propriedades quando a tela é inicializada
+    loadAllProperties();
+  }
+
+  @override
+  void dispose() {
+    mapController?.dispose();
+    super.dispose();
   }
 
   Future<void> _getCurrentUserData() async {
@@ -34,7 +48,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
           .get();
       final address = userDoc.get('city');
 
-      // Verifica se o endereço não é nulo antes de chamar _getCurrentLocation
       if (address != null) {
         _getCurrentLocation(address);
       } else {
@@ -48,7 +61,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (permission == LocationPermission.denied) {
       final status = await Geolocator.requestPermission();
       if (status == LocationPermission.denied) {
-        // Handle the case where the user denies the permission request.
         return;
       }
     }
@@ -64,8 +76,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (address != null) {
       _moveCameraToCurrentPosition();
     }
-
-    loadUserProperties(); // Carregue as propriedades do usuário após obter a localização atual.
   }
 
   void _moveCameraToCurrentPosition() {
@@ -81,63 +91,60 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-  // Carregue as propriedades do usuário do Firestore e adicione marcadores no mapa
-  Future<void> loadUserProperties() async {
-    // Substitua 'properties' pelo nome da coleção de propriedades no Firestore
+  Future<void> _createCustomRedMarkerIcon() async {
+    // Carregue o ícone personalizado vermelho
+    final ByteData data =
+        await rootBundle.load('assets/pino-de-localizacao.png');
+    final List<int> bytes = data.buffer.asUint8List();
+    customRedMarkerIcon = BitmapDescriptor.fromBytes(Uint8List.fromList(bytes));
+  }
+
+  void navigateToPropertyDetails(String propertyId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PropertyDetailsPage(
+          propertyId: propertyId,
+        ),
+      ),
+    );
+  }
+
+  Future<void> loadAllProperties() async {
+    print('Antes da consulta');
     final querySnapshot =
         await FirebaseFirestore.instance.collection('properties').get();
+    print('Depois da consulta');
+    print('Número de documentos retornados: ${querySnapshot.size}');
 
     for (final doc in querySnapshot.docs) {
       final propertyData = doc.data() as Map<String, dynamic>;
-      final latitude = propertyData['latitude'] as double;
-      final longitude = propertyData['longitude'] as double;
-      final propertyId = doc.id;
-      final photoUrl = propertyData['photoUrl'] as String;
+      final latitude = propertyData['latitude'] as double?;
+      final longitude = propertyData['longitude'] as double?;
+      final location = propertyData['location'] as String?;
 
-      final marker = Marker(
-        markerId: MarkerId(propertyId),
-        position: LatLng(latitude, longitude),
-        onTap: () {
-          // Exiba as informações da propriedade quando o marcador for tocado
-          showPropertyDetails(propertyData);
-        },
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueAzure,
-        ),
-      );
-
-      setState(() {
-        propertyMarkers.add(marker);
-      });
-    }
-  }
-
-  // Exiba informações da propriedade quando o marcador for tocado
-  void showPropertyDetails(Map<String, dynamic> propertyData) {
-    // Implemente a lógica para exibir informações da propriedade, como um BottomSheet
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                propertyData['title'],
-                style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text('Preço: ${propertyData['price']}'),
-              Text('Descrição: ${propertyData['description']}'),
-              // Adicione mais campos e informações conforme necessário
-            ],
+      if (latitude != null && longitude != null && location != null) {
+        final marker = Marker(
+          markerId: MarkerId(doc.id),
+          position: LatLng(latitude, longitude),
+          infoWindow: InfoWindow(
+            title: 'Localização',
+            snippet: location,
           ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor
+              .hueGreen), // Use o ícone verde para as propriedades
+          onTap: () {
+            // Lida com o toque no marcador de propriedade
+            // Você pode navegar para a página de detalhes do imóvel aqui
+            navigateToPropertyDetails(doc.id);
+          },
         );
-      },
-    );
+
+        setState(() {
+          propertyMarkers.add(marker);
+        });
+      }
+    }
   }
 
   Future<void> logout() async {
@@ -227,7 +234,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                 ),
                 SizedBox(width: 20.0),
-                SizedBox(height: 20.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -291,12 +297,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       position: currentPosition!,
                       icon: BitmapDescriptor.defaultMarkerWithHue(
                         BitmapDescriptor.hueAzure,
-                      ),
+                      ), // Pino azul para a localização atual
+                      onTap: () {
+                        // Lida com o toque no marcador da localização atual, se necessário
+                      },
                     ),
                   // Adicione os marcadores de propriedades aqui
                   ...propertyMarkers,
                 },
-                compassEnabled: true, // Ative a bússola
+                compassEnabled: true,
+                onTap: (LatLng latLng) {
+                  // Manipular o toque no mapa, se necessário
+                },
               ),
             ),
           ],

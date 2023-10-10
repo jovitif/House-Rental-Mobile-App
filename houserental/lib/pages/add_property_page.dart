@@ -32,6 +32,8 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   String? city;
   String? country;
   List<File?> propertyImages = [];
+  LatLng?
+      selectedLocation; // Adicione esta variável para armazenar a localização selecionada.
 
   @override
   void initState() {
@@ -101,8 +103,11 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         priceController.text.isEmpty ||
         descriptionController.text.isEmpty ||
         specificationController.text.isEmpty ||
-        cepController.text.isEmpty) {
-      showSnackBar('Por favor, preencha todos os campos.');
+        cepController.text.isEmpty ||
+        selectedLocation == null) {
+      // Verifique se a localização foi selecionada.
+      showSnackBar(
+          'Por favor, preencha todos os campos e selecione a localização no mapa.');
       return;
     }
 
@@ -121,8 +126,9 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
           'status': statusToString(selectedStatus),
           'type': typeToString(selectedType),
           'location': cepController.text,
-          'latitude': latitude,
-          'longitude': longitude,
+          'latitude':
+              selectedLocation!.latitude, // Use a localização selecionada.
+          'longitude': selectedLocation!.longitude,
           'ownerId': user.uid,
           'username': username,
           'profileImageUrl': profileImageUrl,
@@ -285,6 +291,11 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                         title: cepController.text,
                       ),
                     ),
+                  },
+                  onTap: (LatLng location) {
+                    setState(() {
+                      selectedLocation = location;
+                    });
                   },
                 ),
               ),
